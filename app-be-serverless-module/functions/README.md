@@ -1,0 +1,2 @@
+The child directories of this `functions` directory is the one that will be deployed by Terraform.
+So don't forget to add new functions here when you're adding to `src/(domain)/(action)/delivery/lambda.go`.

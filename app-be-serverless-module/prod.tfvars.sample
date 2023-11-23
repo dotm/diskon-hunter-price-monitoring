@@ -1,0 +1,10 @@
+aws_deployment_access_key_id     = "AKIA0EXAMPLE0EXAMPLE" #change this
+aws_deployment_secret_access_key = "Example00Example00KOZFoIhPHx3zHBx8htFXQf" #change this
+aws_deployment_account_id        = "123456789012" #change this
+aws_deployment_region            = "ap-southeast-1"
+aws_deployment_region_short      = "apse1"
+deployment_environment_name      = "prod"
+deployment_environment_purpose   = "Enviroment accessed and used by end user"
+project_name                     = "diskon-hunter-price-monitoring"
+project_name_short               = "dhpm"
+module_name                      = "app-be-serverless" #make sure this is the same with the directory name

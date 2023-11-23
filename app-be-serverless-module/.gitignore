@@ -1,0 +1,12 @@
+*.env
+.DS_Store
+
+*.tfvars
+.terraform
+.terraform.tfstate.lock.info
+
+#should be included in VCS
+#see: https://www.terraform.io/language/files/dependency-lock
+#.terraform.lock.hcl
+
+dist
