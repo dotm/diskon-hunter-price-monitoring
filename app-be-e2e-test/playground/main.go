@@ -14,8 +14,9 @@
 package main
 
 import (
+	"diskon-hunter/price-monitoring-e2e-test/shared/dynamodbhelper"
+	"diskon-hunter/price-monitoring-e2e-test/shared/envhelper"
 	"fmt"
-	"strings"
 )
 
 func main() {
@@ -23,15 +24,9 @@ func main() {
 	//Any merge request where there is other things aside from this comment in this function should be rejected.
 
 	//Code experiment goes here...
-	// envhelper.SetLocalEnvVar()
-	// a, b, c := dynamodbhelper.GetLatestCompanySubscriptionOfCompanyId(
-	// 	dynamodbhelper.CreateClientFromSession(),
-	// 	"83fac6fc-7a13-42da-8742-17e4e9cabcb6",
-	// )
-	// fmt.Println(c)
-	// fmt.Println(b)
-	// fmt.Println(a)
-	authSlice := strings.Split("Basic 123:213", "Basic ")
-	credential := strings.Split(authSlice[1], ":")
-	fmt.Printf("%#v", credential)
+	envhelper.SetLocalEnvVar()
+	errObj, err := dynamodbhelper.DeleteUserListByFilter(
+		dynamodbhelper.CreateClientFromSession(), []string{"f1ffd659-bcb7-4bac-add2-1a1ab6d62727"})
+	fmt.Println(err)
+	fmt.Println(errObj)
 }

@@ -1,4 +1,2 @@
-app-be-serverless-module-copy
-app-be-e2e-test
-db-*
+db-s3-*
 network-module
