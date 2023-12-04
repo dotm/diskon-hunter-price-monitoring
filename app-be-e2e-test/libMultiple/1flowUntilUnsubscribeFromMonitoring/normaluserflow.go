@@ -2,6 +2,7 @@ package flowUntilCompanyCreationAndSubscription
 
 import (
 	monitoredLinkAddMultiple "diskon-hunter/price-monitoring-e2e-test/libSingle/monitoredLink/addMultiple"
+	monitoredLinkList "diskon-hunter/price-monitoring-e2e-test/libSingle/monitoredLink/list"
 	userSignIn "diskon-hunter/price-monitoring-e2e-test/libSingle/user/signin"
 	userSignUp "diskon-hunter/price-monitoring-e2e-test/libSingle/user/signup"
 	"diskon-hunter/price-monitoring-e2e-test/shared/constenum"
@@ -142,8 +143,6 @@ func CheckDatabaseForNormalUserFlow() {
 		return
 	}
 
-	fmt.Printf("__finish__ all test successfully: %v\n\n", continueTesting)
-
 	defer func() {
 		cleanedMonitoredLinkUrlList := []string{firstProductUrl, twiceInputProductUrl, thirdProductUrl}
 		_, err := dynamodbhelper.DeleteStlMonitoredLinkDetailByUrlList(
@@ -166,6 +165,42 @@ func CheckDatabaseForNormalUserFlow() {
 			fmt.Printf("error DeleteStlUserMonitorsLinkDetailByUrlList: %v\n\n", err)
 		}
 	}()
+
+	//check monitoredLink.list
+	monitoredLinkListRequestDTO := monitoredLinkList.DefaultRequestObject
+	fmt.Printf("__execute__ monitoredLinkListRequestDTO: %v\n", monitoredLinkListRequestDTO)
+	monitoredLinkListResult, err := monitoredLinkList.Execute(monitoredLinkListRequestDTO, jwtToken)
+	if err != nil {
+		err = fmt.Errorf("error monitoredLinkList: %s", err)
+		fmt.Println(err)
+		continueTesting = false
+		return
+	}
+	if len(monitoredLinkListResult.ResponseData) != 3 {
+		fmt.Printf("error monitoredLinkListResult length is: %v\n\n", len(monitoredLinkListResult.ResponseData))
+		continueTesting = false
+		return
+	}
+	monitoredLinkUrlSet := map[string]bool{
+		firstProductUrl:      true,
+		twiceInputProductUrl: true,
+		thirdProductUrl:      true,
+	}
+	for _, userMonitorsLink := range monitoredLinkListResult.ResponseData {
+		if _, ok := monitoredLinkUrlSet[userMonitorsLink.HubMonitoredLinkUrl]; !ok {
+			fmt.Printf("error url not in input set: %v\n\n", userMonitorsLink.HubMonitoredLinkUrl)
+			continueTesting = false
+			return
+		}
+		if userMonitorsLink.HubUserId != requesterUserId {
+			fmt.Printf("error fetch urls from other userId: %v\n\n", userMonitorsLink.HubUserId)
+			continueTesting = false
+			return
+		}
+	}
+	fmt.Printf("__success__ testing monitoredLinkListResult\n\n")
+
+	fmt.Printf("__finish__ all test successfully: %v\n\n", continueTesting)
 
 	//clean up here
 	//print that __cleanup__ is succesful

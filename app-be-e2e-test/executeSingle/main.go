@@ -1,7 +1,8 @@
 package main
 
 import (
-	singleRequest "diskon-hunter/price-monitoring-e2e-test/libSingle/user/signin"
+	singleRequest "diskon-hunter/price-monitoring-e2e-test/libSingle/monitoredLink/list"
+	"diskon-hunter/price-monitoring-e2e-test/shared"
 	"fmt"
 )
 
@@ -10,10 +11,7 @@ func main() {
 }
 
 func executeSingleRequest() {
-	result, err := singleRequest.Execute(singleRequest.GenerateRequestObject(singleRequest.GenerateRequestObjectArgs{
-		Email:    "diskon.hunter.e2e@yopmail.com",
-		Password: "Test123!",
-	}))
+	result, err := singleRequest.Execute(singleRequest.DefaultRequestObject, shared.JwtToken)
 	fmt.Println()
 	fmt.Printf("result:\n%+v\n\nerror:\n%v\n\n-----------\n", result, err)
 }
