@@ -1,4 +1,4 @@
-package userSignUp
+package userResetPassword
 
 import (
 	"context"
@@ -50,7 +50,6 @@ type CommandV1Dependencies struct {
 }
 
 type CommandV1DataResponse struct {
-	Id    string
 	Email string
 }
 
@@ -80,12 +79,14 @@ func CommandV1Handler(
 	if command.Email == "" {
 		return emptyResponse, createerror.UserAuthenticationShouldSpecifyEmail()
 	}
-
-	errObj, err := dynamodbhelper.ValidateUserEmailHasNotBeenRegistered(
-		dependencies.DynamoDBClient,
-		command.Email,
-	)
+	_, errObj, err := dynamodbhelper.ValidateUserEmailIsRegistered(dependencies.DynamoDBClient, command.Email)
 	if errObj != nil {
+		if errObj.Code == createerror.UserEmailNotRegisteredCode {
+			//fail silently if email not found
+			emptyResponse.Email = command.Email
+			return emptyResponse, nil
+		}
+
 		//error already well described on the calling method
 		dependencies.Logger.EnqueueErrorLog(err, true)
 		return emptyResponse, errObj
@@ -152,7 +153,6 @@ func CommandV1Handler(
 	//You can send the event id back to the requester
 	//so that they can periodically check the status of the event.
 	return CommandV1DataResponse{
-		Id:    newUser.HubUserId,
 		Email: newUser.Email,
 	}, nil
 }

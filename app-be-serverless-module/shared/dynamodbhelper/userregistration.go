@@ -8,7 +8,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 )
 
 func ValidateUserEmailIsRegistered(
@@ -33,7 +32,7 @@ func ValidateUserEmailIsRegistered(
 		return existingEmailUserMappingItem, createerror.InternalException(err), err
 	}
 	if existingEmailUserMapping.Item == nil {
-		err = fmt.Errorf("email already registered")
+		err = fmt.Errorf("email has not been registered")
 		return existingEmailUserMappingItem, createerror.UserEmailNotRegistered(), err
 	}
 
@@ -63,39 +62,4 @@ func ValidateUserEmailHasNotBeenRegistered(dynamoDBClient *dynamodb.DynamoDB, em
 	}
 
 	return nil, nil
-}
-
-func CreateTransactionItemsForUserRegistration(userDAO user.StlUserDetailDAOV1) ([]*dynamodb.TransactWriteItem, *serverresponse.ErrorObj, error) {
-	//don't mutate this. emptyTransaction should be used when returning error.
-	emptyTransaction := []*dynamodb.TransactWriteItem{}
-
-	userDAOItem, err := dynamodbattribute.MarshalMap(userDAO)
-	if err != nil {
-		err = fmt.Errorf("error marshaling userDAO: %v", err)
-		return emptyTransaction, createerror.InternalException(err), err
-	}
-	userEmailAuthenticationDAOItem, err := dynamodbattribute.MarshalMap(user.StlUserEmailAuthenticationDAOV1{
-		Email:          userDAO.Email,
-		HubUserId:      userDAO.HubUserId,
-		HashedPassword: userDAO.HashedPassword,
-	})
-	if err != nil {
-		err = fmt.Errorf("error marshaling userEmailAuthenticationDAO: %v", err)
-		return emptyTransaction, createerror.InternalException(err), err
-	}
-
-	return []*dynamodb.TransactWriteItem{
-		{
-			Put: &dynamodb.Put{
-				Item:      userDAOItem,
-				TableName: aws.String(user.GetStlUserDetailDynamoDBTableV1()),
-			},
-		},
-		{
-			Put: &dynamodb.Put{
-				Item:      userEmailAuthenticationDAOItem,
-				TableName: aws.String(user.GetStlUserEmailAuthenticationDynamoDBTableV1()),
-			},
-		},
-	}, nil, nil
 }

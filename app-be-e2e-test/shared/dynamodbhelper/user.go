@@ -59,7 +59,7 @@ func DeleteUserListByFilter(
 			err = fmt.Errorf("error DeleteItem from %s: %v", tableName, err)
 			return createerror.InternalException(err), err
 		}
-		//other authentication method should be added below
+		//other authentication methods should be added below
 	}
 
 	return nil, nil
@@ -129,6 +129,73 @@ func GetUserListByFilter(
 	return userList, nil, nil
 }
 
+func GetUserEmailHasOtpDetailByEmail(
+	dynamoDBClient *dynamodb.DynamoDB,
+	email string,
+) (
+	user.StlUserEmailHasOtpDetailDAOV1,
+	*serverresponse.ErrorObj,
+	error,
+) {
+	userEmailHasOtpDetailList, errObj, err := GetUserEmailHasOtpDetailListByEmailList(dynamoDBClient, []string{email})
+	if errObj != nil || err != nil || len(userEmailHasOtpDetailList) == 0 {
+		return user.StlUserEmailHasOtpDetailDAOV1{}, errObj, err
+	}
+	return userEmailHasOtpDetailList[0], nil, nil
+}
+
+func GetUserEmailHasOtpDetailListByEmailList(
+	dynamoDBClient *dynamodb.DynamoDB,
+	emailList []string,
+) (
+	[]user.StlUserEmailHasOtpDetailDAOV1,
+	*serverresponse.ErrorObj,
+	error,
+) {
+	userEmailHasOtpDetailList := []user.StlUserEmailHasOtpDetailDAOV1{}
+	if len(emailList) == 0 {
+		return userEmailHasOtpDetailList, nil, nil
+	}
+
+	batchGetItemKeys := []map[string]*dynamodb.AttributeValue{}
+	for i := 0; i < len(emailList); i++ {
+		batchGetItemKeys = append(batchGetItemKeys, map[string]*dynamodb.AttributeValue{
+			"Email": {
+				S: aws.String(emailList[i]),
+			},
+		})
+	}
+	tableName := user.GetStlUserEmailHasOtpDetailDynamoDBTableV1()
+	batchGetItemOutput, err := dynamoDBClient.BatchGetItem(&dynamodb.BatchGetItemInput{
+		RequestItems: map[string]*dynamodb.KeysAndAttributes{
+			tableName: {
+				Keys: batchGetItemKeys,
+			},
+		},
+	})
+	if err != nil {
+		err = fmt.Errorf("error batchGetItemOutput from %s: %v", tableName, err)
+		return userEmailHasOtpDetailList, createerror.InternalException(err), err
+	}
+	for i := 0; i < len(batchGetItemOutput.Responses[tableName]); i++ {
+		userEmailHasOtpDetailDAO := user.StlUserEmailHasOtpDetailDAOV1{}
+		err = dynamodbattribute.UnmarshalMap(
+			batchGetItemOutput.Responses[tableName][i],
+			&userEmailHasOtpDetailDAO,
+		)
+		if err != nil {
+			err = fmt.Errorf("error unmarshaling userEmailHasOtpDetailDAO: %v", err)
+			return userEmailHasOtpDetailList, createerror.InternalException(err), err
+		}
+		userEmailHasOtpDetailList = append(userEmailHasOtpDetailList, userEmailHasOtpDetailDAO)
+	}
+	// if len(userEmailHasOtpDetailList) < len(encryptedEmailList) {
+	// 	//for backend code, need to validate all encrypted email is equal in subset and superset
+	// }
+
+	return userEmailHasOtpDetailList, nil, nil
+}
+
 func GetUserEmailAuthenticationListByEmailList(
 	dynamoDBClient *dynamodb.DynamoDB,
 	emailList []string,
@@ -179,4 +246,39 @@ func GetUserEmailAuthenticationListByEmailList(
 	// }
 
 	return userEmailAuthenticationList, nil, nil
+}
+
+func DeleteUserOtpByEmailList(
+	dynamoDBClient *dynamodb.DynamoDB,
+	emailList []string,
+) (
+	*serverresponse.ErrorObj,
+	error,
+) {
+	if len(emailList) == 0 {
+		return nil, nil
+	}
+
+	for _, email := range emailList {
+		var tableName string
+		var err error
+
+		tableName = user.GetStlUserEmailHasOtpDetailDynamoDBTableV1()
+		_, err = dynamoDBClient.DeleteItem(&dynamodb.DeleteItemInput{
+			Key: map[string]*dynamodb.AttributeValue{
+				"Email": {
+					S: aws.String(email),
+				},
+			},
+			TableName: aws.String(tableName),
+		})
+		if err != nil {
+			err = fmt.Errorf("error DeleteItem from %s: %v", tableName, err)
+			return createerror.InternalException(err), err
+		}
+
+		//other otp methods should be added in a different function
+	}
+
+	return nil, nil
 }

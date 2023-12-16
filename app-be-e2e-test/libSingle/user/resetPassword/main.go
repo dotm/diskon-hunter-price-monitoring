@@ -2,7 +2,7 @@ package userSignUp
 
 import (
 	"diskon-hunter/price-monitoring-e2e-test/shared"
-	dto "diskon-hunter/price-monitoring-e2e-test/shared/delivery/user/signup"
+	dto "diskon-hunter/price-monitoring-e2e-test/shared/delivery/user/resetPassword"
 	"diskon-hunter/price-monitoring-e2e-test/shared/dynamodbhelper"
 	"diskon-hunter/price-monitoring-e2e-test/shared/serverresponse"
 	"encoding/json"
@@ -14,7 +14,7 @@ type RequestDTOV1 = dto.RequestDTOV1
 
 var DefaultRequestObject = GenerateRequestObject(GenerateRequestObjectArgs{
 	Email:    "diskon.hunter.e2e@yopmail.com",
-	Password: "Test123!",
+	Password: "Test1234!",
 })
 
 type GenerateRequestObjectArgs struct {

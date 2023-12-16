@@ -1,21 +1,17 @@
-package userSignUp
+package userValidateOtp
 
 import (
 	"context"
 	"diskon-hunter/price-monitoring/shared/createerror"
 	"diskon-hunter/price-monitoring/shared/dynamodbhelper"
-	"diskon-hunter/price-monitoring/shared/emailutil"
 	"diskon-hunter/price-monitoring/shared/lazylogger"
-	"diskon-hunter/price-monitoring/shared/password"
 	"diskon-hunter/price-monitoring/shared/serverresponse"
 	"diskon-hunter/price-monitoring/shared/stringmasker"
 	"diskon-hunter/price-monitoring/src/user"
 	"encoding/json"
 	"fmt"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/google/uuid"
 )
 
 /*
@@ -23,18 +19,17 @@ Commands represent input from client through API requests.
 Addition, change, or removal of struct fields might cause version increment
 */
 type CommandV1 struct {
-	Version  string `json:"version"` //should follow the struct name suffix
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Version string `json:"version"` //should follow the struct name suffix
+	Email   string `json:"email"`
+	OTP     string `json:"otp"`
 }
 
 func (x CommandV1) createLoggableString() (string, error) {
 	//strip any sensitive information.
 	//strip any fields that are too large to be printed (e.g. image blob).
 	loggableCommand := CommandV1{
-		Version:  x.Version,
-		Email:    stringmasker.Email(x.Email),
-		Password: stringmasker.Password(x.Password),
+		Version: x.Version,
+		Email:   stringmasker.Email(x.Email),
 	}
 	byteSlice, err := json.Marshal(loggableCommand)
 	if err != nil {
@@ -81,7 +76,7 @@ func CommandV1Handler(
 		return emptyResponse, createerror.UserAuthenticationShouldSpecifyEmail()
 	}
 
-	errObj, err := dynamodbhelper.ValidateUserEmailHasNotBeenRegistered(
+	userEmailHasOtpDetail, errObj, err := dynamodbhelper.GetUserEmailHasOtpDetailByEmail(
 		dependencies.DynamoDBClient,
 		command.Email,
 	)
@@ -90,27 +85,17 @@ func CommandV1Handler(
 		dependencies.Logger.EnqueueErrorLog(err, true)
 		return emptyResponse, errObj
 	}
+	if userEmailHasOtpDetail.OTP != command.OTP {
+		return emptyResponse, createerror.UserCredentialIncorrect()
+	}
 
 	/* Business Logic
 	Perform business logic preferably through domain model's methods.
 	*/
-	hashedPassword, err := password.Hash(command.Password)
-	if err != nil {
-		err = fmt.Errorf("error hashing password: %v", err)
-		dependencies.Logger.EnqueueErrorLog(err, true)
-		return emptyResponse, createerror.InternalException(err)
-	}
-
 	newUser := user.StlUserDetailDAOV1{
-		HubUserId:      uuid.NewString(),
-		Email:          command.Email,
-		HashedPassword: hashedPassword,
-	}
-	otp, err := emailutil.GenerateOTP()
-	if err != nil {
-		err = fmt.Errorf("error generating otp: %v", err)
-		dependencies.Logger.EnqueueErrorLog(err, true)
-		return emptyResponse, createerror.InternalException(err)
+		HubUserId:      userEmailHasOtpDetail.HubUserId,
+		Email:          userEmailHasOtpDetail.Email,
+		HashedPassword: userEmailHasOtpDetail.HashedPassword,
 	}
 
 	/* Persisting Data
@@ -118,24 +103,7 @@ func CommandV1Handler(
 	If write model is used, also persist write model with atomic transaction.
 	*/
 
-	errObj, err = emailutil.SendEmail(
-		emailutil.CreateClientFromSession(),
-		emailutil.SendEmailArgs{
-			Sender:        emailutil.DefaultEmailSender,
-			RecipientList: []*string{aws.String(newUser.Email)},
-			CcList:        []*string{},
-			Subject:       "Your OTP for Diskon Hunter",
-			HtmlBody:      fmt.Sprintf("<p>OTP anda adalah %s (berlaku %v menit). Mohon tidak membagikannya kepada <strong>siapapun termasuk admin Diskon Hunter</strong>.</p><p>Your OTP is %s (will expire in %v minutes). Please don't share it to <strong>anyone, even to Diskon Hunter's admin</strong>.</p>", otp, emailutil.OtpExpiredInMinutes, otp, emailutil.OtpExpiredInMinutes),
-			TextBody:      fmt.Sprintf("OTP anda adalah %s (berlaku %v menit). Mohon tidak membagikannya kepada siapapun termasuk admin Diskon Hunter. \nYour OTP is %s (will expire in %v minutes). Please don't share it to anyone, even to Diskon Hunter's admin.", otp, emailutil.OtpExpiredInMinutes, otp, emailutil.OtpExpiredInMinutes),
-		},
-	)
-	if errObj != nil {
-		//error already well described on the calling method
-		dependencies.Logger.EnqueueErrorLog(err, true)
-		return emptyResponse, errObj
-	}
-
-	transactItems, errObj, err := dynamodbhelper.CreateTransactionItemsForUserCreateOtp(newUser, otp)
+	transactItems, errObj, err := dynamodbhelper.CreateTransactionItemsForUserValidateOTP(newUser)
 	if errObj != nil {
 		//error already well described on the calling method
 		dependencies.Logger.EnqueueErrorLog(err, true)

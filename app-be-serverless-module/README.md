@@ -58,6 +58,11 @@ First deployment:
 - `terraform workspace new prod`
 - `terraform workspace select prod; terraform apply -var-file="prod.tfvars"`
   - We use multiple command in one line to make sure we don't forget to select the correct workspace before applying the resources.
+- Move AWS SES out of sandbox:
+  - https://docs.aws.amazon.com/ses/latest/dg/request-production-access.html
+- Configuration > Verified identities > Create identity:
+  - Identity type: email address
+  - Tip: use @yopmail.com for disposable email address
 
 Not the first deployment:
 

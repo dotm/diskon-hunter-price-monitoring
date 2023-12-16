@@ -43,6 +43,11 @@ resource "aws_iam_role_policy_attachment" "lambda_s3_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
 }
 
+resource "aws_iam_role_policy_attachment" "lambda_ses_policy" {
+  role       = aws_iam_role.lambda_exec.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSESFullAccess"
+}
+
 //API Gateway
 
 resource "aws_apigatewayv2_api" "lambda" {

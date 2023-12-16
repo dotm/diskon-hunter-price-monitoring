@@ -14,8 +14,8 @@
 package main
 
 import (
+	"diskon-hunter/price-monitoring/shared/emailutil"
 	"fmt"
-	"strings"
 )
 
 func main() {
@@ -31,7 +31,5 @@ func main() {
 	// fmt.Println(c)
 	// fmt.Println(b)
 	// fmt.Println(a)
-	authSlice := strings.Split("Basic 123:213", "Basic ")
-	credential := strings.Split(authSlice[1], ":")
-	fmt.Printf("%#v", credential)
+	fmt.Println(emailutil.GenerateOTP())
 }

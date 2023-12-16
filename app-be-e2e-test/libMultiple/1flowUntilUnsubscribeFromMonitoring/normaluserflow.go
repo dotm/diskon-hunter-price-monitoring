@@ -4,8 +4,10 @@ import (
 	monitoredLinkAddMultiple "diskon-hunter/price-monitoring-e2e-test/libSingle/monitoredLink/addMultiple"
 	monitoredLinkEditMultiple "diskon-hunter/price-monitoring-e2e-test/libSingle/monitoredLink/editMultiple"
 	monitoredLinkList "diskon-hunter/price-monitoring-e2e-test/libSingle/monitoredLink/list"
+	userResetPassword "diskon-hunter/price-monitoring-e2e-test/libSingle/user/resetPassword"
 	userSignIn "diskon-hunter/price-monitoring-e2e-test/libSingle/user/signin"
 	userSignUp "diskon-hunter/price-monitoring-e2e-test/libSingle/user/signup"
+	userValidateOtp "diskon-hunter/price-monitoring-e2e-test/libSingle/user/validateOtp"
 	"diskon-hunter/price-monitoring-e2e-test/shared/constenum"
 	"diskon-hunter/price-monitoring-e2e-test/shared/currencyutil"
 	"diskon-hunter/price-monitoring-e2e-test/shared/delivery/monitoredLink"
@@ -23,11 +25,12 @@ func CheckDatabaseForNormalUserFlow() {
 	continueTesting := false
 
 	userEmail := "diskon.hunter.e2e@yopmail.com"
+	firstPassword := "Test12!"
 	password := "Test123!"
 
 	userSignUpRequestDTO := userSignUp.GenerateRequestObject(userSignUp.GenerateRequestObjectArgs{
 		Email:    userEmail,
-		Password: password,
+		Password: firstPassword,
 	})
 	fmt.Printf("__execute__ userSignUpRequestDTO: %v\n", userSignUpRequestDTO)
 	userSignUpResult, err := userSignUp.Execute(userSignUpRequestDTO)
@@ -41,10 +44,82 @@ func CheckDatabaseForNormalUserFlow() {
 	if !continueTesting {
 		return
 	}
+	userEmailHasOtpDetailForSignUpFlow, _, err := dynamodbhelper.GetUserEmailHasOtpDetailByEmail(
+		dynamodbhelper.CreateClientFromSession(),
+		userEmail,
+	)
+	if err != nil {
+		err = fmt.Errorf("error GetUserEmailHasOtpDetailByEmail: %s", err)
+		fmt.Println(err)
+		continueTesting = false
+		return
+	}
+	otpForSignUpFlow := userEmailHasOtpDetailForSignUpFlow.OTP
+	userValidateOtpRequestDTOForSignUpFlow := userValidateOtp.GenerateRequestObject(userValidateOtp.GenerateRequestObjectArgs{
+		Email: userEmail,
+		OTP:   otpForSignUpFlow,
+	})
+	fmt.Printf("__execute__ userValidateOtpRequestDTO: %v\n", userValidateOtpRequestDTOForSignUpFlow)
+	userValidateOtpResultForSignUpFlow, err := userValidateOtp.Execute(userValidateOtpRequestDTOForSignUpFlow)
+	if err != nil {
+		err = fmt.Errorf("error userValidateOtp: %s", err)
+		fmt.Println(err)
+		continueTesting = false
+		return
+	}
+	continueTesting = CheckDatabaseForUserValidateOtp(userValidateOtpRequestDTOForSignUpFlow, userValidateOtpResultForSignUpFlow)
+	if !continueTesting {
+		return
+	}
+
+	userResetPasswordRequestDTO := userResetPassword.GenerateRequestObject(userResetPassword.GenerateRequestObjectArgs{
+		Email:    userEmail,
+		Password: password,
+	})
+	fmt.Printf("__execute__ userResetPasswordRequestDTO: %v\n", userResetPasswordRequestDTO)
+	userResetPasswordResult, err := userResetPassword.Execute(userResetPasswordRequestDTO)
+	if err != nil {
+		err = fmt.Errorf("error userResetPassword: %s", err)
+		fmt.Println(err)
+		continueTesting = false
+		return
+	}
+	continueTesting = CheckDatabaseForUserResetPassword(userResetPasswordRequestDTO, userResetPasswordResult)
+	if !continueTesting {
+		return
+	}
+
+	userEmailHasOtpDetailForResetPasswordFlow, _, err := dynamodbhelper.GetUserEmailHasOtpDetailByEmail(
+		dynamodbhelper.CreateClientFromSession(),
+		userEmail,
+	)
+	if err != nil {
+		err = fmt.Errorf("error GetUserEmailHasOtpDetailByEmail forResetPasswordFlow: %s", err)
+		fmt.Println(err)
+		continueTesting = false
+		return
+	}
+	otpForResetPasswordFlow := userEmailHasOtpDetailForResetPasswordFlow.OTP
+	userValidateOtpRequestDTOForResetPasswordFlow := userValidateOtp.GenerateRequestObject(userValidateOtp.GenerateRequestObjectArgs{
+		Email: userEmail,
+		OTP:   otpForResetPasswordFlow,
+	})
+	fmt.Printf("__execute__ userValidateOtpRequestDTO forResetPasswordFlow: %v\n", userValidateOtpRequestDTOForResetPasswordFlow)
+	userValidateOtpResultForResetPasswordFlow, err := userValidateOtp.Execute(userValidateOtpRequestDTOForResetPasswordFlow)
+	if err != nil {
+		err = fmt.Errorf("error userValidateOtp forResetPasswordFlow: %s", err)
+		fmt.Println(err)
+		continueTesting = false
+		return
+	}
+	continueTesting = CheckDatabaseForUserValidateOtp(userValidateOtpRequestDTOForResetPasswordFlow, userValidateOtpResultForResetPasswordFlow)
+	if !continueTesting {
+		return
+	}
 	defer func() {
 		_, err := dynamodbhelper.DeleteUserListByFilter(
 			dynamodbhelper.CreateClientFromSession(),
-			[]string{userSignUpResult.ResponseData.Id},
+			[]string{userValidateOtpResultForResetPasswordFlow.ResponseData.Id},
 		)
 		if err == nil {
 			fmt.Printf("__cleanup__ DeleteUserListByFilter successful\n\n")
@@ -266,6 +341,26 @@ func CheckDatabaseForUserSignUp(request userSignUp.RequestDTOV1, result userSign
 	// return
 
 	err := userSignUp.CheckResultIsCorrect(request, result) //error already printed in CheckResultIsCorrect
+	continueTesting = err == nil
+	return
+}
+
+func CheckDatabaseForUserResetPassword(request userResetPassword.RequestDTOV1, result userResetPassword.ExecuteResult) (continueTesting bool) {
+	//uncomment to disable this function
+	// fmt.Printf("__disabled_checking__ should be commented out once all tests run successfully\n\n")
+	// return
+
+	err := userResetPassword.CheckResultIsCorrect(request, result) //error already printed in CheckResultIsCorrect
+	continueTesting = err == nil
+	return
+}
+
+func CheckDatabaseForUserValidateOtp(request userValidateOtp.RequestDTOV1, result userValidateOtp.ExecuteResult) (continueTesting bool) {
+	//uncomment to disable this function
+	// fmt.Printf("__disabled_checking__ should be commented out once all tests run successfully\n\n")
+	// return
+
+	err := userValidateOtp.CheckResultIsCorrect(request, result) //error already printed in CheckResultIsCorrect
 	continueTesting = err == nil
 	return
 }

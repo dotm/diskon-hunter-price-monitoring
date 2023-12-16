@@ -1,6 +1,6 @@
 package delivery
 
-const PathV1 = "/v1/user.signup"
+const PathV1 = "/v1/user.resetPassword"
 
 // Data Transfer Object is used for API contract with clients
 // e.g. frontend app, mobile app, external API call.
@@ -15,6 +15,5 @@ type RequestDTOV1 struct {
 // ResponseDTO is for data going from the server to clients.
 // This will be wrapped in the data field of server response object.
 type ResponseDTOV1 struct {
-	Id    string
 	Email string
 }
