@@ -50,25 +50,28 @@ func NewStlMonitoredLinkDetailDAOV1(
 }
 
 type StlUserMonitorsLinkDetailDAOV1 struct {
-	HubUserId           string
-	HubMonitoredLinkUrl string
-	AlertPrice          currencyutil.Currency
-	AlertMethodList     []constenum.AlertMethod
-	TimeExpired         time.Time //DynamoDB time-to-live; latest expired time per user
+	HubUserId             string
+	HubMonitoredLinkUrl   string
+	AlertPrice            currencyutil.Currency
+	ActiveAlertMethodList []constenum.AlertMethod
+	PaidAlertMethodList   []constenum.AlertMethod
+	TimeExpired           time.Time //DynamoDB time-to-live; latest expired time per user
 }
 
 func NewStlUserMonitorsLinkDetailDAOV1(
 	HubUserId string,
 	HubMonitoredLinkUrl string,
 	AlertPrice currencyutil.Currency,
-	AlertMethodList []constenum.AlertMethod,
+	ActiveAlertMethodList []constenum.AlertMethod,
+	PaidAlertMethodList []constenum.AlertMethod,
 	TimeExpired time.Time,
 ) StlUserMonitorsLinkDetailDAOV1 {
 	return StlUserMonitorsLinkDetailDAOV1{
-		HubUserId:           HubUserId,
-		HubMonitoredLinkUrl: HubMonitoredLinkUrl,
-		AlertPrice:          AlertPrice,
-		AlertMethodList:     AlertMethodList,
-		TimeExpired:         TimeExpired,
+		HubUserId:             HubUserId,
+		HubMonitoredLinkUrl:   HubMonitoredLinkUrl,
+		AlertPrice:            AlertPrice,
+		ActiveAlertMethodList: ActiveAlertMethodList,
+		PaidAlertMethodList:   PaidAlertMethodList,
+		TimeExpired:           TimeExpired,
 	}
 }

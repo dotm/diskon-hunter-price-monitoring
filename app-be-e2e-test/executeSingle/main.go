@@ -1,7 +1,7 @@
 package main
 
 import (
-	singleRequest "diskon-hunter/price-monitoring-e2e-test/libSingle/monitoredLink/list"
+	singleRequest "diskon-hunter/price-monitoring-e2e-test/libSingle/monitoredLink/editMultiple"
 	"diskon-hunter/price-monitoring-e2e-test/shared"
 	"fmt"
 )

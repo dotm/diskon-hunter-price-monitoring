@@ -2,6 +2,7 @@ package flowUntilCompanyCreationAndSubscription
 
 import (
 	monitoredLinkAddMultiple "diskon-hunter/price-monitoring-e2e-test/libSingle/monitoredLink/addMultiple"
+	monitoredLinkEditMultiple "diskon-hunter/price-monitoring-e2e-test/libSingle/monitoredLink/editMultiple"
 	monitoredLinkList "diskon-hunter/price-monitoring-e2e-test/libSingle/monitoredLink/list"
 	userSignIn "diskon-hunter/price-monitoring-e2e-test/libSingle/user/signin"
 	userSignUp "diskon-hunter/price-monitoring-e2e-test/libSingle/user/signup"
@@ -200,6 +201,26 @@ func CheckDatabaseForNormalUserFlow() {
 	}
 	fmt.Printf("__success__ testing monitoredLinkListResult\n\n")
 
+	monitoredLinkEditMultipleRequestDTO := monitoredLinkEditMultiple.GenerateRequestObject(monitoredLinkEditMultiple.GenerateRequestObjectArgs{
+		MonitoredLinkList: []monitoredLinkEditMultiple.MonitoredLinkRequestDTOV1{
+			{HubMonitoredLinkUrl: firstProductUrl, AlertPrice: currencyutil.NewFromNumberString("150000", "IDR"), ActiveAlertMethodList: []constenum.AlertMethod{constenum.AlertMethodEmail}},
+			{HubMonitoredLinkUrl: thirdProductUrl, AlertPrice: currencyutil.NewFromNumberString("150000", "IDR"), ActiveAlertMethodList: []constenum.AlertMethod{}},
+		},
+	})
+	fmt.Printf("__execute__ monitoredLinkEditMultipleRequestDTO: %v\n", monitoredLinkEditMultipleRequestDTO)
+	monitoredLinkEditMultipleResult, err := monitoredLinkEditMultiple.Execute(monitoredLinkEditMultipleRequestDTO, jwtToken)
+	if err != nil {
+		err = fmt.Errorf("error monitoredLinkEditMultiple: %s", err)
+		fmt.Println(err)
+		continueTesting = false
+		return
+	}
+	continueTesting = CheckDatabaseForMonitoredLinkEditMultiple(monitoredLinkEditMultipleRequestDTO, monitoredLinkEditMultipleResult, requesterUserId)
+	if !continueTesting {
+		return
+	}
+	fmt.Printf("__success__ testing monitoredLinkEditMultipleResult\n\n")
+
 	fmt.Printf("__finish__ all test successfully: %v\n\n", continueTesting)
 
 	//clean up here
@@ -219,6 +240,22 @@ func CheckDatabaseForMonitoredLinkAddMultiple(
 	// return
 
 	monitoredLinkDAOList, err := monitoredLinkAddMultiple.CheckResultIsCorrect(request, result, requesterUserId) //error already printed in CheckResultIsCorrect
+	continueTesting = err == nil
+	return
+}
+
+func CheckDatabaseForMonitoredLinkEditMultiple(
+	request monitoredLinkEditMultiple.RequestDTOV1,
+	result monitoredLinkEditMultiple.ExecuteResult,
+	requesterUserId string,
+) (
+	continueTesting bool,
+) {
+	//uncomment to disable this function
+	// fmt.Printf("__disabled_checking__ should be commented out once all tests run successfully\n\n")
+	// return
+
+	err := monitoredLinkEditMultiple.CheckResultIsCorrect(request, result, requesterUserId) //error already printed in CheckResultIsCorrect
 	continueTesting = err == nil
 	return
 }

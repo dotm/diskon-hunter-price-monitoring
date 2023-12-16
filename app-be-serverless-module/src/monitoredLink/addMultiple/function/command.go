@@ -8,6 +8,7 @@ import (
 	"diskon-hunter/price-monitoring/shared/dynamodbhelper"
 	"diskon-hunter/price-monitoring/shared/lazylogger"
 	"diskon-hunter/price-monitoring/shared/serverresponse"
+	"diskon-hunter/price-monitoring/shared/urlutil"
 	monitoredLink "diskon-hunter/price-monitoring/src/monitoredLink"
 	"encoding/json"
 	"fmt"
@@ -113,14 +114,15 @@ func CommandV1Handler(
 	monitoredLinkRawToCleanedMap := map[string]string{}
 	for i := 0; i < len(command.MonitoredLinkList); i++ {
 		rawUrl := command.MonitoredLinkList[i].HubMonitoredLinkUrl
-		cleanedUrl := rawUrl //remove irrelevant query params ~kodok
+		cleanedUrl := urlutil.CleanUrl(rawUrl)
 		monitoredLinkRawToCleanedMap[rawUrl] = cleanedUrl
 		stlUserMonitorsLinkDAOList = append(stlUserMonitorsLinkDAOList, monitoredLink.NewStlUserMonitorsLinkDetailDAOV1(
 			command.RequesterUserId,                      //HubUserId
 			cleanedUrl,                                   //HubMonitoredLinkUrl
 			command.MonitoredLinkList[i].AlertPrice,      //AlertPrice
-			command.MonitoredLinkList[i].AlertMethodList, //AlertMethodList
-			timeExpired,                                  //TimeExpired
+			command.MonitoredLinkList[i].AlertMethodList, //ActiveAlertMethodList
+			command.MonitoredLinkList[i].AlertMethodList, //PaidAlertMethodList
+			timeExpired, //TimeExpired
 		))
 	}
 
