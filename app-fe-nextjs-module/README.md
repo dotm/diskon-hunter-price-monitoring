@@ -8,6 +8,19 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 - In next.config.js, add `output: 'export',` and `images: { unoptimized: true, },` to the nextConfig object
 - use `next build` to create an `out` directory containing SPA.
 
+## TODO
+
+- check how to store user sign in jwt
+- implement Settings component
+- implement MonitorPrice component
+  - not signed in: Halo Diskon Hunter, silahkan sign in jika anda sudah pernah melakukan sign up. Jika belum, pembuatan akun akan dilakukan setelah anda melakukan pembayaran.
+  - Cara sign in: buka Pengaturan (jika anda menggunakan handphone, silahkan klik ikon tiga garis di atas halaman ini), masukkan email dan password, klik Sign In.
+- implement SearchItem component
+- add user testimonial and example alert in MonitorPrice and SearchItem
+- recheck kodok
+- Change favicon and logo
+- add GIT_COMMIT_SHA for api/appVersion
+
 ## Getting Started
 
 First, run the development server:

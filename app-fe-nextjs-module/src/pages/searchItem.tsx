@@ -1,4 +1,4 @@
-import MonitorPrice from '@/components/MonitorPrice'
+import SearchItem from '@/components/SearchItem'
 import Sidebar from '@/components/Sidebar'
 import { refreshIfNewAppVersionAvailable } from '@/utils/appversionutil'
 import { LocalStorageKey } from '@/utils/constants'
@@ -16,8 +16,8 @@ export default function Home () {
 
   return (
     <div>
-      <Sidebar pageTitle='Monitor Harga' navTitle='Monitor Harga'>
-        <MonitorPrice />
+      <Sidebar pageTitle='Cari Barang' navTitle='Cari Barang'>
+        <SearchItem />
       </Sidebar>
     </div>
   )
