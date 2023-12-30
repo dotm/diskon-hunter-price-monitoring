@@ -1,4 +1,4 @@
-package userSignUp
+package userValidateOtp
 
 import (
 	"diskon-hunter/price-monitoring-e2e-test/shared"

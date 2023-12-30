@@ -9,11 +9,11 @@ export async function refreshIfNewAppVersionAvailable(
   setAppVersion: (value: string)=>void,
   router: NextRouter,
 ) {
-  //implement /appVersion (not /v1/appVersion !!) in backend ~kodok
+  //implement /v1/appVersion in backend ~kodok
   // const response = await fetch(
-  //   `${backendBaseUrl}/appVersion`,
+  //   `${backendBaseUrl}/v1/appVersion`,
   //   {
-  //     method: "GET",
+  //     method: "POST",
   //   }
   // );
   // const respJson: AppVersionResponseData = await response.json();

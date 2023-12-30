@@ -10,16 +10,17 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 ## TODO
 
-- check how to store user sign in jwt
 - implement Settings component
+  - Edit User Data flow (BE+FE)
+  - implement api/appVersion
 - implement MonitorPrice component
-  - not signed in: Halo Diskon Hunter, silahkan sign in jika anda sudah pernah melakukan sign up. Jika belum, pembuatan akun akan dilakukan setelah anda melakukan pembayaran.
-  - Cara sign in: buka Pengaturan (jika anda menggunakan handphone, silahkan klik ikon tiga garis di atas halaman ini), masukkan email dan password, klik Sign In.
+  - not signed in: Halo Diskon Hunter, silahkan sign in dengan meng-click text ini, jika anda sudah pernah melakukan sign up. Jika anda belum memiliki akun, pembuatan akun akan dilakukan setelah anda melakukan pembayaran.
+  - Ragu dengan harga Rp.1000/link? Ingin mendapatkan informasi harga selain dari link e-commerce? Silahkan coba fitur eksperimental kami "Cari Barang" hanya Rp.500 / 5 barang !!!
 - implement SearchItem component
+  - kami akan bantu anda mencari barang sesuai harga yang anda inginkan. jika kami menemukan barang yang cocok, kami akan menghubungi anda menggunakan whatsapp (bukan SMS ataupun telepon).
 - add user testimonial and example alert in MonitorPrice and SearchItem
 - recheck kodok
 - Change favicon and logo
-- add GIT_COMMIT_SHA for api/appVersion
 
 ## Getting Started
 
