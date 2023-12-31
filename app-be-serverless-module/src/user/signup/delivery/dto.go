@@ -15,6 +15,6 @@ type RequestDTOV1 struct {
 // ResponseDTO is for data going from the server to clients.
 // This will be wrapped in the data field of server response object.
 type ResponseDTOV1 struct {
-	Id    string
-	Email string
+	HubUserId string
+	Email     string
 }

@@ -4,6 +4,7 @@ import (
 	monitoredLinkAddMultiple "diskon-hunter/price-monitoring-e2e-test/libSingle/monitoredLink/addMultiple"
 	monitoredLinkEditMultiple "diskon-hunter/price-monitoring-e2e-test/libSingle/monitoredLink/editMultiple"
 	monitoredLinkList "diskon-hunter/price-monitoring-e2e-test/libSingle/monitoredLink/list"
+	userEdit "diskon-hunter/price-monitoring-e2e-test/libSingle/user/edit"
 	userResetPassword "diskon-hunter/price-monitoring-e2e-test/libSingle/user/resetPassword"
 	userSignIn "diskon-hunter/price-monitoring-e2e-test/libSingle/user/signin"
 	userSignUp "diskon-hunter/price-monitoring-e2e-test/libSingle/user/signup"
@@ -25,7 +26,8 @@ func CheckDatabaseForNormalUserFlow() {
 	continueTesting := false
 
 	userEmail := "diskon.hunter.e2e@yopmail.com"
-	firstPassword := "Test12!"
+	firstPassword := "Test123!"
+	secondPassword := "Test12!"
 	password := "Test123!"
 
 	userSignUpRequestDTO := userSignUp.GenerateRequestObject(userSignUp.GenerateRequestObjectArgs{
@@ -40,6 +42,7 @@ func CheckDatabaseForNormalUserFlow() {
 		continueTesting = false
 		return
 	}
+	requesterUserId := userSignUpResult.ResponseData.HubUserId
 	continueTesting = CheckDatabaseForUserSignUp(userSignUpRequestDTO, userSignUpResult)
 	if !continueTesting {
 		return
@@ -67,14 +70,14 @@ func CheckDatabaseForNormalUserFlow() {
 		continueTesting = false
 		return
 	}
-	continueTesting = CheckDatabaseForUserValidateOtp(userValidateOtpRequestDTOForSignUpFlow, userValidateOtpResultForSignUpFlow)
+	continueTesting = CheckDatabaseForUserValidateOtp(userValidateOtpRequestDTOForSignUpFlow, userValidateOtpResultForSignUpFlow, requesterUserId)
 	if !continueTesting {
 		return
 	}
 
 	userResetPasswordRequestDTO := userResetPassword.GenerateRequestObject(userResetPassword.GenerateRequestObjectArgs{
 		Email:    userEmail,
-		Password: password,
+		Password: secondPassword,
 	})
 	fmt.Printf("__execute__ userResetPasswordRequestDTO: %v\n", userResetPasswordRequestDTO)
 	userResetPasswordResult, err := userResetPassword.Execute(userResetPasswordRequestDTO)
@@ -112,7 +115,7 @@ func CheckDatabaseForNormalUserFlow() {
 		continueTesting = false
 		return
 	}
-	continueTesting = CheckDatabaseForUserValidateOtp(userValidateOtpRequestDTOForResetPasswordFlow, userValidateOtpResultForResetPasswordFlow)
+	continueTesting = CheckDatabaseForUserValidateOtp(userValidateOtpRequestDTOForResetPasswordFlow, userValidateOtpResultForResetPasswordFlow, requesterUserId)
 	if !continueTesting {
 		return
 	}
@@ -130,7 +133,7 @@ func CheckDatabaseForNormalUserFlow() {
 
 	userSignInRequestDTO := userSignIn.GenerateRequestObject(userSignIn.GenerateRequestObjectArgs{
 		Email:    userEmail,
-		Password: password,
+		Password: secondPassword,
 	})
 	fmt.Printf("__execute__ userSignInRequestDTO: %v\n", userSignInRequestDTO)
 	userSignInResult, err := userSignIn.Execute(userSignInRequestDTO)
@@ -142,7 +145,22 @@ func CheckDatabaseForNormalUserFlow() {
 	}
 
 	jwtToken := userSignInResult.JWTCookieString
-	requesterUserId := userSignInResult.ResponseData.HubUserId
+
+	userEditRequestDTO := userEdit.GenerateRequestObject(userEdit.GenerateRequestObjectArgs{
+		Password: password,
+	})
+	fmt.Printf("__execute__ userEditRequestDTO: %v\n", userEditRequestDTO)
+	userEditResult, err := userEdit.Execute(userEditRequestDTO, jwtToken)
+	if err != nil {
+		err = fmt.Errorf("error userEdit: %s", err)
+		fmt.Println(err)
+		continueTesting = false
+		return
+	}
+	continueTesting = CheckDatabaseForUserEdit(userEditRequestDTO, userEditResult, requesterUserId)
+	if !continueTesting {
+		return
+	}
 
 	firstProductUrl := "https://mock.com/product/1"
 	twiceInputProductUrl := "https://mock.com/product/2"
@@ -302,6 +320,22 @@ func CheckDatabaseForNormalUserFlow() {
 	//print that __cleanup__ is succesful
 }
 
+func CheckDatabaseForUserEdit(
+	request userEdit.RequestDTOV1,
+	result userEdit.ExecuteResult,
+	requesterUserId string,
+) (
+	continueTesting bool,
+) {
+	//uncomment to disable this function
+	// fmt.Printf("__disabled_checking__ should be commented out once all tests run successfully\n\n")
+	// return
+
+	err := userEdit.CheckResultIsCorrect(request, result, requesterUserId) //error already printed in CheckResultIsCorrect
+	continueTesting = err == nil
+	return
+}
+
 func CheckDatabaseForMonitoredLinkAddMultiple(
 	request monitoredLinkAddMultiple.RequestDTOV1,
 	result monitoredLinkAddMultiple.ExecuteResult,
@@ -355,12 +389,12 @@ func CheckDatabaseForUserResetPassword(request userResetPassword.RequestDTOV1, r
 	return
 }
 
-func CheckDatabaseForUserValidateOtp(request userValidateOtp.RequestDTOV1, result userValidateOtp.ExecuteResult) (continueTesting bool) {
+func CheckDatabaseForUserValidateOtp(request userValidateOtp.RequestDTOV1, result userValidateOtp.ExecuteResult, requesterUserId string) (continueTesting bool) {
 	//uncomment to disable this function
 	// fmt.Printf("__disabled_checking__ should be commented out once all tests run successfully\n\n")
 	// return
 
-	err := userValidateOtp.CheckResultIsCorrect(request, result) //error already printed in CheckResultIsCorrect
+	err := userValidateOtp.CheckResultIsCorrect(request, result, requesterUserId) //error already printed in CheckResultIsCorrect
 	continueTesting = err == nil
 	return
 }

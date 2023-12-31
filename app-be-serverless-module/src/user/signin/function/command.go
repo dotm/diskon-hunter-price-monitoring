@@ -9,14 +9,11 @@ import (
 	"diskon-hunter/price-monitoring/shared/password"
 	"diskon-hunter/price-monitoring/shared/serverresponse"
 	"diskon-hunter/price-monitoring/shared/stringmasker"
-	"diskon-hunter/price-monitoring/src/user"
 	"encoding/json"
 	"fmt"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 )
 
 /*
@@ -53,6 +50,7 @@ type CommandV1Dependencies struct {
 
 type CommandV1DataResponse struct {
 	HubUserId      string
+	Email          string
 	SignedJwtToken string
 	JwtExpiration  time.Time
 }
@@ -84,7 +82,7 @@ func CommandV1Handler(
 		return emptyResponse, createerror.UserAuthenticationShouldSpecifyEmail()
 	}
 
-	existingEmailUserMappingItem, errObj, err := dynamodbhelper.ValidateUserEmailIsRegistered(dependencies.DynamoDBClient, command.Email)
+	existingEmailUserMappingDAO, errObj, err := dynamodbhelper.ValidateUserEmailIsRegistered(dependencies.DynamoDBClient, command.Email)
 	if errObj != nil {
 		//error already well described on the calling method
 		dependencies.Logger.EnqueueErrorLog(err, true)
@@ -92,39 +90,7 @@ func CommandV1Handler(
 	}
 
 	//check password is correct
-	existingEmailUserMappingDAO := user.StlUserEmailAuthenticationDAOV1{}
-	err = dynamodbattribute.UnmarshalMap(existingEmailUserMappingItem, &existingEmailUserMappingDAO)
-	if err != nil {
-		err = fmt.Errorf("error unmarshaling existingEmailUserMappingDAO: %v", err)
-		dependencies.Logger.EnqueueErrorLog(err, true)
-		return emptyResponse, createerror.InternalException(err)
-	}
-	existingUserResp, err := dependencies.DynamoDBClient.GetItem(&dynamodb.GetItemInput{
-		Key: map[string]*dynamodb.AttributeValue{
-			"HubUserId": {
-				S: aws.String(existingEmailUserMappingDAO.HubUserId),
-			},
-		},
-		TableName: aws.String(user.GetStlUserDetailDynamoDBTableV1()),
-	})
-	if err != nil {
-		err = fmt.Errorf("error get user item: %v", err)
-		dependencies.Logger.EnqueueErrorLog(err, true)
-		return emptyResponse, createerror.InternalException(err)
-	}
-	if existingUserResp.Item == nil {
-		err = fmt.Errorf("user not found")
-		dependencies.Logger.EnqueueErrorLog(err, true)
-		return emptyResponse, createerror.UserNotFound(err)
-	}
-	existingUserDAO := user.StlUserDetailDAOV1{}
-	err = dynamodbattribute.UnmarshalMap(existingUserResp.Item, &existingUserDAO)
-	if err != nil {
-		err = fmt.Errorf("error unmarshaling user response: %v", err)
-		dependencies.Logger.EnqueueErrorLog(err, true)
-		return emptyResponse, createerror.InternalException(err)
-	}
-	passwordCorrect := password.MatchPasswordToHash(command.Password, existingUserDAO.HashedPassword)
+	passwordCorrect := password.MatchPasswordToHash(command.Password, existingEmailUserMappingDAO.HashedPassword)
 	if !passwordCorrect {
 		return emptyResponse, createerror.UserCredentialIncorrect()
 	}
@@ -135,7 +101,7 @@ func CommandV1Handler(
 
 	jwtExpiration := time.Now().Add(time.Hour * 24 * 365) //365 days
 	signedJwtToken, err := jwttoken.BuildAndSign(
-		jwttoken.BuildCustomClaims(existingUserDAO.HubUserId),
+		jwttoken.BuildCustomClaims(existingEmailUserMappingDAO.HubUserId),
 		jwtExpiration,
 	)
 	if err != nil {
@@ -151,7 +117,8 @@ func CommandV1Handler(
 	//You can send the event id back to the requester
 	//so that they can periodically check the status of the event.
 	return CommandV1DataResponse{
-		HubUserId:      existingUserDAO.HubUserId,
+		HubUserId:      existingEmailUserMappingDAO.HubUserId,
+		Email:          existingEmailUserMappingDAO.Email,
 		SignedJwtToken: signedJwtToken,
 		JwtExpiration:  jwtExpiration,
 	}, nil

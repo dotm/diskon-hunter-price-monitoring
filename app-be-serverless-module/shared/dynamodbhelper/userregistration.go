@@ -8,13 +8,14 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 )
 
 func ValidateUserEmailIsRegistered(
 	dynamoDBClient *dynamodb.DynamoDB,
 	email string,
 ) (
-	existingEmailUserMappingItem map[string]*dynamodb.AttributeValue,
+	existingEmailUserMappingDAO user.StlUserEmailAuthenticationDAOV1,
 	errObj *serverresponse.ErrorObj,
 	err error,
 ) {
@@ -29,15 +30,19 @@ func ValidateUserEmailIsRegistered(
 	})
 	if err != nil {
 		err = fmt.Errorf("error get email user mapping item: %v", err)
-		return existingEmailUserMappingItem, createerror.InternalException(err), err
+		return existingEmailUserMappingDAO, createerror.InternalException(err), err
 	}
 	if existingEmailUserMapping.Item == nil {
 		err = fmt.Errorf("email has not been registered")
-		return existingEmailUserMappingItem, createerror.UserEmailNotRegistered(), err
+		return existingEmailUserMappingDAO, createerror.UserEmailNotRegistered(), err
 	}
 
-	existingEmailUserMappingItem = existingEmailUserMapping.Item
-	return existingEmailUserMappingItem, nil, nil
+	err = dynamodbattribute.UnmarshalMap(existingEmailUserMapping.Item, &existingEmailUserMappingDAO)
+	if err != nil {
+		err = fmt.Errorf("error unmarshaling existingEmailUserMappingDAO: %v", err)
+		return existingEmailUserMappingDAO, createerror.InternalException(err), err
+	}
+	return existingEmailUserMappingDAO, nil, nil
 }
 
 func ValidateUserEmailHasNotBeenRegistered(dynamoDBClient *dynamodb.DynamoDB, email string) (*serverresponse.ErrorObj, error) {

@@ -50,8 +50,8 @@ type CommandV1Dependencies struct {
 }
 
 type CommandV1DataResponse struct {
-	Id    string
-	Email string
+	HubUserId string
+	Email     string
 }
 
 /*
@@ -152,7 +152,7 @@ func CommandV1Handler(
 	//You can send the event id back to the requester
 	//so that they can periodically check the status of the event.
 	return CommandV1DataResponse{
-		Id:    newUser.HubUserId,
-		Email: newUser.Email,
+		HubUserId: newUser.HubUserId,
+		Email:     newUser.Email,
 	}, nil
 }

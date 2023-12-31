@@ -6,28 +6,22 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/aws/aws-lambda-go/events"
-
 	"diskon-hunter/price-monitoring/shared/dynamodbhelper"
+	"diskon-hunter/price-monitoring/shared/jwttoken"
 	"diskon-hunter/price-monitoring/shared/lambdahelper"
 	"diskon-hunter/price-monitoring/shared/lazylogger"
 	"diskon-hunter/price-monitoring/shared/serverresponse"
-	userSignUp "diskon-hunter/price-monitoring/src/user/signup/function"
+
+	"github.com/aws/aws-lambda-go/events"
+
+	userEdit "diskon-hunter/price-monitoring/src/user/edit/function"
 )
 
-/*
-DON'T FORGET to create new lambda.go handlers in the app-be-serverless-module/functions directory
-to make sure they are deployed by Terraform to AWS Lambda
-*/
-
 func LambdaHandlerV1(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	//logging and panic handling needs to be copied
-	//for all delivery methods (HTTP server, Serverless Function, etc.)
-	var errObj *serverresponse.ErrorObj
+
 	logger := lazylogger.New(req.Path)
 
 	var reqBody RequestDTOV1
-
 	err := json.NewDecoder(strings.NewReader(req.Body)).Decode(&reqBody)
 	if err != nil {
 		return events.APIGatewayProxyResponse{
@@ -36,17 +30,21 @@ func LambdaHandlerV1(ctx context.Context, req events.APIGatewayProxyRequest) (ev
 		}, nil
 	}
 
-	var res userSignUp.CommandV1DataResponse
-	if errObj == nil {
-		cmd := userSignUp.CommandV1{
-			Version:  "1",
-			Email:    reqBody.Email,
-			Password: reqBody.Password,
-		}
+	//parse jwt
+	authorizationHeaders := req.Headers["authorization"] //header key is auto-lowercased
+	token, errObj := jwttoken.ParseFromAuthorizationHeader(authorizationHeaders)
 
-		res, errObj = userSignUp.CommandV1Handler(
+	var res userEdit.CommandV1DataResponse
+	if errObj == nil {
+		cmd := userEdit.NewCommandV1(
+			"1",                       //Version
+			jwttoken.GetUserId(token), //RequesterUserId
+			reqBody.Password,          //Password
+		)
+
+		res, errObj = userEdit.CommandV1Handler(
 			ctx,
-			userSignUp.CommandV1Dependencies{
+			userEdit.CommandV1Dependencies{
 				Logger:         logger,
 				DynamoDBClient: dynamodbhelper.CreateClientFromSession(),
 			},
@@ -59,12 +57,8 @@ func LambdaHandlerV1(ctx context.Context, req events.APIGatewayProxyRequest) (ev
 		resObj.Ok = false
 		resObj.Err = errObj
 	} else {
-		resDTO := ResponseDTOV1{
-			HubUserId: res.HubUserId,
-			Email:     res.Email,
-		}
 		resObj.Ok = true
-		resObj.Data = resDTO
+		resObj.Data = res
 	}
 
 	lambdaResp := lambdahelper.HandleLogAndPanic(logger, errObj)
@@ -72,5 +66,7 @@ func LambdaHandlerV1(ctx context.Context, req events.APIGatewayProxyRequest) (ev
 		//will only be executed when panic because lambdaResp is only not nil when panic happened.
 		return *lambdaResp, nil
 	}
+
 	return lambdahelper.WriteResponseFn(resObj, ""), nil
+
 }

@@ -72,6 +72,7 @@ func LambdaHandlerV1(ctx context.Context, req events.APIGatewayProxyRequest) (ev
 		resObj.Ok = true
 		resObj.Data = ResponseDTOV1{
 			HubUserId:       res.HubUserId,
+			Email:           res.Email,
 			JwtCookieString: jwtCookieString,
 		}
 	}

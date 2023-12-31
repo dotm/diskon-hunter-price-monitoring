@@ -10,9 +10,6 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 ## TODO
 
-- implement Settings component
-  - Edit User Data flow (BE+FE)
-  - implement api/appVersion
 - implement MonitorPrice component
   - not signed in: Halo Diskon Hunter, silahkan sign in dengan meng-click text ini, jika anda sudah pernah melakukan sign up. Jika anda belum memiliki akun, pembuatan akun akan dilakukan setelah anda melakukan pembayaran.
   - Ragu dengan harga Rp.1000/link? Ingin mendapatkan informasi harga selain dari link e-commerce? Silahkan coba fitur eksperimental kami "Cari Barang" hanya Rp.500 / 5 barang !!!

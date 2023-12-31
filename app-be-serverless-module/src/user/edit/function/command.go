@@ -1,10 +1,9 @@
-package userResetPassword
+package userEdit
 
 import (
 	"context"
 	"diskon-hunter/price-monitoring/shared/createerror"
 	"diskon-hunter/price-monitoring/shared/dynamodbhelper"
-	"diskon-hunter/price-monitoring/shared/emailutil"
 	"diskon-hunter/price-monitoring/shared/lazylogger"
 	"diskon-hunter/price-monitoring/shared/password"
 	"diskon-hunter/price-monitoring/shared/serverresponse"
@@ -13,7 +12,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 )
 
@@ -22,9 +20,21 @@ Commands represent input from client through API requests.
 Addition, change, or removal of struct fields might cause version increment
 */
 type CommandV1 struct {
-	Version  string `json:"version"` //should follow the struct name suffix
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Version         string
+	RequesterUserId string
+	Password        string
+}
+
+func NewCommandV1(
+	Version string, //should follow the struct name suffix
+	RequesterUserId string,
+	Password string,
+) CommandV1 {
+	return CommandV1{
+		Version:         Version,
+		RequesterUserId: RequesterUserId,
+		Password:        Password,
+	}
 }
 
 func (x CommandV1) createLoggableString() (string, error) {
@@ -32,7 +42,6 @@ func (x CommandV1) createLoggableString() (string, error) {
 	//strip any fields that are too large to be printed (e.g. image blob).
 	loggableCommand := CommandV1{
 		Version:  x.Version,
-		Email:    stringmasker.Email(x.Email),
 		Password: stringmasker.Password(x.Password),
 	}
 	byteSlice, err := json.Marshal(loggableCommand)
@@ -48,13 +57,8 @@ type CommandV1Dependencies struct {
 	DynamoDBClient *dynamodb.DynamoDB
 }
 
-type CommandV1DataResponse struct {
-	Email string
-}
+type CommandV1DataResponse = user.StlUserDetailDAOV1
 
-/*
-Addition, change, or removal of validation might cause version increment
-*/
 func CommandV1Handler(
 	ctx context.Context,
 	dependencies CommandV1Dependencies,
@@ -62,6 +66,7 @@ func CommandV1Handler(
 ) (CommandV1DataResponse, *serverresponse.ErrorObj) {
 	//don't mutate this. emptyResponse should be used when returning error.
 	emptyResponse := CommandV1DataResponse{}
+
 	//log the command
 	loggableCommand, err := command.createLoggableString()
 	if err != nil {
@@ -75,21 +80,6 @@ func CommandV1Handler(
 	Validations from auth, write model,
 	or domain model's business logic (from projections or from events replay).
 	*/
-	if command.Email == "" {
-		return emptyResponse, createerror.UserAuthenticationShouldSpecifyEmail()
-	}
-	existingEmailUserMappingDAO, errObj, err := dynamodbhelper.ValidateUserEmailIsRegistered(dependencies.DynamoDBClient, command.Email)
-	if errObj != nil {
-		if errObj.Code == createerror.UserEmailNotRegisteredCode {
-			//fail silently if email not found
-			emptyResponse.Email = command.Email
-			return emptyResponse, nil
-		}
-
-		//error already well described on the calling method
-		dependencies.Logger.EnqueueErrorLog(err, true)
-		return emptyResponse, errObj
-	}
 
 	/* Business Logic
 	Perform business logic preferably through domain model's methods.
@@ -101,33 +91,8 @@ func CommandV1Handler(
 		return emptyResponse, createerror.InternalException(err)
 	}
 
-	newUser := user.StlUserDetailDAOV1{
-		HubUserId:      existingEmailUserMappingDAO.HubUserId,
-		Email:          existingEmailUserMappingDAO.Email,
-		HashedPassword: hashedPassword,
-	}
-	otp, err := emailutil.GenerateOTP()
-	if err != nil {
-		err = fmt.Errorf("error generating otp: %v", err)
-		dependencies.Logger.EnqueueErrorLog(err, true)
-		return emptyResponse, createerror.InternalException(err)
-	}
-
-	/* Persisting Data
-	Persist event to event store.
-	If write model is used, also persist write model with atomic transaction.
-	*/
-
-	errObj, err = emailutil.SendEmail(
-		emailutil.CreateClientFromSession(),
-		emailutil.SendEmailArgs{
-			Sender:        emailutil.DefaultEmailSender,
-			RecipientList: []*string{aws.String(newUser.Email)},
-			CcList:        []*string{},
-			Subject:       "Your OTP for Diskon Hunter",
-			HtmlBody:      fmt.Sprintf("<p>OTP anda adalah %s (berlaku %v menit). Mohon tidak membagikannya kepada <strong>siapapun termasuk admin Diskon Hunter</strong>.</p><p>Your OTP is %s (will expire in %v minutes). Please don't share it to <strong>anyone, even to Diskon Hunter's admin</strong>.</p>", otp, emailutil.OtpExpiredInMinutes, otp, emailutil.OtpExpiredInMinutes),
-			TextBody:      fmt.Sprintf("OTP anda adalah %s (berlaku %v menit). Mohon tidak membagikannya kepada siapapun termasuk admin Diskon Hunter. \nYour OTP is %s (will expire in %v minutes). Please don't share it to anyone, even to Diskon Hunter's admin.", otp, emailutil.OtpExpiredInMinutes, otp, emailutil.OtpExpiredInMinutes),
-		},
+	existingUserDAO, errObj, err := dynamodbhelper.GetUserById(
+		dependencies.DynamoDBClient, command.RequesterUserId,
 	)
 	if errObj != nil {
 		//error already well described on the calling method
@@ -135,7 +100,18 @@ func CommandV1Handler(
 		return emptyResponse, errObj
 	}
 
-	transactItems, errObj, err := dynamodbhelper.CreateTransactionItemsForUserCreateOtp(newUser, otp)
+	newUser := user.StlUserDetailDAOV1{
+		HubUserId:      existingUserDAO.HubUserId,
+		Email:          existingUserDAO.Email, //email is NOT editable for security and profit concern
+		HashedPassword: hashedPassword,
+	}
+
+	/* Persisting Data
+	Persist event to event store.
+	If write model is used, also persist write model with atomic transaction.
+	*/
+
+	transactItems, errObj, err := dynamodbhelper.CreateTransactionItemsForEditUser(newUser)
 	if errObj != nil {
 		//error already well described on the calling method
 		dependencies.Logger.EnqueueErrorLog(err, true)
@@ -149,9 +125,5 @@ func CommandV1Handler(
 		return emptyResponse, errObj
 	}
 
-	//You can send the event id back to the requester
-	//so that they can periodically check the status of the event.
-	return CommandV1DataResponse{
-		Email: newUser.Email,
-	}, nil
+	return newUser, nil
 }

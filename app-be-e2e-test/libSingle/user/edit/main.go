@@ -1,8 +1,8 @@
-package userValidateOtp
+package userEdit
 
 import (
 	"diskon-hunter/price-monitoring-e2e-test/shared"
-	dto "diskon-hunter/price-monitoring-e2e-test/shared/delivery/user/validateOtp"
+	dto "diskon-hunter/price-monitoring-e2e-test/shared/delivery/user/edit"
 	"diskon-hunter/price-monitoring-e2e-test/shared/dynamodbhelper"
 	"diskon-hunter/price-monitoring-e2e-test/shared/serverresponse"
 	"encoding/json"
@@ -13,13 +13,11 @@ import (
 type RequestDTOV1 = dto.RequestDTOV1
 
 var DefaultRequestObject = GenerateRequestObject(GenerateRequestObjectArgs{
-	Email: "diskon.hunter.e2e@yopmail.com",
-	OTP:   "123456",
+	Password: "Test1234!",
 })
 
 type GenerateRequestObjectArgs struct {
-	Email string
-	OTP   string
+	Password string
 }
 
 // GenerateRequestObject allow only a few parameter to be customized
@@ -27,8 +25,7 @@ type GenerateRequestObjectArgs struct {
 // dto.RequestDTOV1 with all the fields.
 func GenerateRequestObject(args GenerateRequestObjectArgs) dto.RequestDTOV1 {
 	dto := dto.RequestDTOV1{
-		Email: args.Email,
-		OTP:   args.OTP,
+		Password: args.Password,
 	}
 	return dto
 }
@@ -48,13 +45,13 @@ type ExecuteResult struct {
 }
 
 // Execute the request
-func Execute(body dto.RequestDTOV1) (result ExecuteResult, err error) {
+func Execute(body dto.RequestDTOV1, jwtToken string) (result ExecuteResult, err error) {
 	endpoint := shared.GetBackendUrl() + dto.PathV1
 	req, err := shared.CreatePostRequestWithJsonBody(
 		shared.CreatePostRequestWithJsonBodyArgs{
 			Body:     body,
 			Endpoint: endpoint,
-			JwtToken: shared.JwtToken,
+			JwtToken: jwtToken,
 		},
 	)
 	if err != nil {
@@ -123,19 +120,6 @@ func CheckResultIsCorrect(request dto.RequestDTOV1, result ExecuteResult, reques
 
 	fmt.Printf("__success__ adding to user email authentication table:\n%+v\n\n", userEmailAuthenticationList[0])
 
-	userEmailHasOtpDetailList, errObj, err := dynamodbhelper.GetUserEmailHasOtpDetailListByEmailList(
-		dynamodbhelper.CreateClientFromSession(), []string{email})
-	if errObj != nil || err != nil {
-		fmt.Printf("__exception__ errObj: %+v\n", errObj)
-		fmt.Printf("__exception__ err: %v\n", err)
-		return
-	}
-	if len(userEmailHasOtpDetailList) > 0 {
-		fmt.Printf("__exception__ otp for email %s not deleted from database", email)
-		return
-	}
-	fmt.Printf("__success__ deleting user email has otp table\n\n")
-
 	return nil
 }
 
@@ -143,7 +127,7 @@ func RevertResult(request dto.RequestDTOV1, result ExecuteResult) (err error) {
 	//Should remove data from database (or other data stores) directly
 	// and undo other side effects that can be reverted (e.g. data mutations, etc).
 	//Some side effects can't be reverted: sending push notification/email/SMS, etc.
-	userIdList := []string{result.ResponseData.Id}
+	userIdList := []string{result.ResponseData.HubUserId}
 	errObj, err := dynamodbhelper.DeleteUserListByFilter(dynamodbhelper.CreateClientFromSession(), userIdList)
 	if errObj != nil || err != nil {
 		fmt.Printf("__exception__ errObj: %+v\n", errObj)
