@@ -9,11 +9,11 @@ export async function refreshIfNewAppVersionAvailable(
   setAppVersion: (value: string)=>void,
   router: NextRouter,
 ) {
-  //implement /v1/appVersion in backend ~kodok
+  //uncomment this after GTM ~kodok
   // const response = await fetch(
-  //   `${backendBaseUrl}/v1/appVersion`,
+  //   `${backendBaseUrl}/appVersion`,
   //   {
-  //     method: "POST",
+  //     method: "GET",
   //   }
   // );
   // const respJson: AppVersionResponseData = await response.json();
