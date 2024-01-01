@@ -15,10 +15,8 @@ export default function Home () {
   })
 
   return (
-    <div>
-      <Sidebar pageTitle='Monitor Harga' navTitle='Monitor Harga'>
-        <MonitorPrice />
-      </Sidebar>
-    </div>
+    <Sidebar pageTitle='Monitor Harga' navTitle='Monitor Harga'>
+      <MonitorPrice />
+    </Sidebar>
   )
 }

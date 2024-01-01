@@ -15,10 +15,8 @@ export default function Home () {
   })
 
   return (
-    <div>
-      <Sidebar pageTitle='Cari Barang' navTitle='Cari Barang'>
-        <SearchItem />
-      </Sidebar>
-    </div>
+    <Sidebar pageTitle='Cari Barang' navTitle='Cari Barang'>
+      <SearchItem />
+    </Sidebar>
   )
 }

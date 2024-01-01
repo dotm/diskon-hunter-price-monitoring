@@ -7,6 +7,7 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
   - don't use import alias
 - In next.config.js, add `output: 'export',` and `images: { unoptimized: true, },` to the nextConfig object
 - use `next build` to create an `out` directory containing SPA.
+- disable SSR with `utils/nossr.tsx`
 
 ## TODO
 
@@ -15,9 +16,6 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
   - Ragu dengan harga Rp.1000/link? Ingin mendapatkan informasi harga selain dari link e-commerce? Silahkan coba fitur eksperimental kami "Cari Barang" hanya Rp.500 / 5 barang !!!
 - implement SearchItem component
   - kami akan bantu anda mencari barang sesuai harga yang anda inginkan. jika kami menemukan barang yang cocok, kami akan menghubungi anda menggunakan whatsapp (bukan SMS ataupun telepon).
-- add user testimonial and example alert in MonitorPrice and SearchItem
-- recheck kodok
-- Change favicon and logo
 
 ## Getting Started
 

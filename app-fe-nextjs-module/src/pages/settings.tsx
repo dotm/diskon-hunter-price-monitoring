@@ -15,10 +15,8 @@ export default function Home () {
   })
 
   return (
-    <div>
-      <Sidebar pageTitle='Pengaturan' navTitle='Pengaturan'>
-        <Settings />
-      </Sidebar>
-    </div>
+    <Sidebar pageTitle='Pengaturan' navTitle='Pengaturan'>
+      <Settings />
+    </Sidebar>
   )
 }
