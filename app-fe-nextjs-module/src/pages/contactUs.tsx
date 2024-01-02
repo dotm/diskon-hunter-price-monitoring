@@ -1,4 +1,4 @@
-import SearchItem from '@/components/SearchItem'
+import ContactUs from '@/components/ContactUs'
 import Sidebar from '@/components/Sidebar'
 import { refreshIfNewAppVersionAvailable } from '@/utils/appversionutil'
 import { LocalStorageKey } from '@/utils/constants'
@@ -6,7 +6,7 @@ import { useRouter } from 'next/router'
 import { useEffect } from 'react'
 import useLocalStorage from 'use-local-storage'
 
-export default function SearchItemPage() {
+export default function ContactUsPage() {
   const router = useRouter()
   const [appVersion, setAppVersion] = useLocalStorage<string>(LocalStorageKey.appVersion, "")
 
@@ -15,8 +15,8 @@ export default function SearchItemPage() {
   })
 
   return (
-    <Sidebar pageTitle='Cari Barang' navTitle='Cari Barang'>
-      <SearchItem />
+    <Sidebar pageTitle='Kontak Kami' navTitle='Kontak Kami'>
+      <ContactUs />
     </Sidebar>
   )
 }

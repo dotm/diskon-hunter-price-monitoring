@@ -12,8 +12,8 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 ## TODO
 
 - implement MonitorPrice component
-  - not signed in: Halo Diskon Hunter, silahkan sign in dengan meng-click text ini, jika anda sudah pernah melakukan sign up. Jika anda belum memiliki akun, pembuatan akun akan dilakukan setelah anda melakukan pembayaran.
-  - Ragu dengan harga Rp.1000/link? Ingin mendapatkan informasi harga selain dari link e-commerce? Silahkan coba fitur eksperimental kami "Cari Barang" hanya Rp.500 / 5 barang !!!
+  - update backend code for list and connect with frontend
+  - add page for add and edit
 - implement SearchItem component
   - kami akan bantu anda mencari barang sesuai harga yang anda inginkan. jika kami menemukan barang yang cocok, kami akan menghubungi anda menggunakan whatsapp (bukan SMS ataupun telepon).
 

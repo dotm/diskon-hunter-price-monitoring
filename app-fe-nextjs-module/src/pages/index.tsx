@@ -6,7 +6,7 @@ import { useRouter } from 'next/router'
 import { useEffect } from 'react'
 import useLocalStorage from 'use-local-storage'
 
-export default function Home () {
+export default function HomePage() {
   const router = useRouter()
   const [appVersion, setAppVersion] = useLocalStorage<string>(LocalStorageKey.appVersion, "")
 

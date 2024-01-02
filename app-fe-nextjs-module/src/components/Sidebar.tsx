@@ -5,6 +5,7 @@ import {
   BookmarkIcon,
   Cog6ToothIcon,
   MagnifyingGlassIcon,
+  PhoneIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline'
 import Link from 'next/link'
@@ -33,6 +34,12 @@ export default function Sidebar({
       href: '/searchItem',
       icon: MagnifyingGlassIcon,
       current: navTitle === 'Cari Barang'
+    },
+    {
+      name: 'Kontak Kami',
+      href: '/contactUs',
+      icon: PhoneIcon,
+      current: navTitle === 'Kontak Kami'
     },
   ]
 

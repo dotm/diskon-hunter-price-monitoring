@@ -41,7 +41,12 @@ export default function EditUserDataForm() {
       <div className="sm:mx-auto sm:w-full sm:max-w-[480px]">
         <div className="bg-gray-800 p-8 shadow sm:rounded-lg">
           <form className="space-y-6" onSubmit={interactor_userEdit}>
-            <p className="text-center text-white">{loggedInUserData?.email ?? "Email N/A"}</p>
+            <p className="text-center text-white">
+              Silahkan menggunakan form ini untuk mengubah data user anda:
+              <br/>
+              <br/>
+              {loggedInUserData?.email ?? "Email N/A"}
+            </p>
 
             <div>
               <label htmlFor="signIn-password" className="sr-only block text-sm font-medium leading-6 text-gray-900">
