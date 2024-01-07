@@ -1,7 +1,6 @@
 package delivery
 
 import (
-	"diskon-hunter/price-monitoring/shared/constenum"
 	"diskon-hunter/price-monitoring/shared/currencyutil"
 	"diskon-hunter/price-monitoring/src/monitoredLink"
 )
@@ -19,7 +18,7 @@ type RequestDTOV1 struct {
 
 type MonitoredLinkRequestDTOV1 struct {
 	HubMonitoredLinkUrl   string //assumed to be cleaned because this comes from our database
-	ActiveAlertMethodList []constenum.AlertMethod
+	ActiveAlertMethodList []string
 	AlertPrice            currencyutil.Currency
 }
 

@@ -1,7 +1,6 @@
 package delivery
 
 import (
-	"diskon-hunter/price-monitoring/shared/constenum"
 	"diskon-hunter/price-monitoring/shared/currencyutil"
 )
 
@@ -19,7 +18,7 @@ type RequestDTOV1 struct {
 type MonitoredLinkRequestDTOV1 struct {
 	HubMonitoredLinkUrl string
 	AlertPrice          currencyutil.Currency
-	AlertMethodList     []constenum.AlertMethod
+	AlertMethodList     []string
 }
 
 // ResponseDTO is for data going from the server to clients.

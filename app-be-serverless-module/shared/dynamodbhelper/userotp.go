@@ -50,28 +50,27 @@ func GetUserEmailHasOtpDetailListByEmailList(
 		})
 	}
 	tableName := user.GetStlUserEmailHasOtpDetailDynamoDBTableV1()
-	batchGetItemOutput, err := dynamoDBClient.BatchGetItem(&dynamodb.BatchGetItemInput{
-		RequestItems: map[string]*dynamodb.KeysAndAttributes{
-			tableName: {
-				Keys: batchGetItemKeys,
-			},
-		},
-	})
-	if err != nil {
-		err = fmt.Errorf("error batchGetItemOutput from %s: %v", tableName, err)
-		return userEmailHasOtpDetailList, createerror.InternalException(err), err
-	}
-	for i := 0; i < len(batchGetItemOutput.Responses[tableName]); i++ {
-		userEmailHasOtpDetailDAO := user.StlUserEmailHasOtpDetailDAOV1{}
-		err = dynamodbattribute.UnmarshalMap(
-			batchGetItemOutput.Responses[tableName][i],
-			&userEmailHasOtpDetailDAO,
-		)
-		if err != nil {
-			err = fmt.Errorf("error unmarshaling userEmailHasOtpDetailDAO: %v", err)
-			return userEmailHasOtpDetailList, createerror.InternalException(err), err
+	parseResponseToDAO := func(response []map[string]*dynamodb.AttributeValue) (
+		errObj *serverresponse.ErrorObj,
+		err error,
+	) {
+		for i := 0; i < len(response); i++ {
+			userEmailHasOtpDetailDAO := user.StlUserEmailHasOtpDetailDAOV1{}
+			err = dynamodbattribute.UnmarshalMap(
+				response[i],
+				&userEmailHasOtpDetailDAO,
+			)
+			if err != nil {
+				err = fmt.Errorf("error unmarshaling userEmailHasOtpDetailDAO: %v", err)
+				return createerror.InternalException(err), err
+			}
+			userEmailHasOtpDetailList = append(userEmailHasOtpDetailList, userEmailHasOtpDetailDAO)
 		}
-		userEmailHasOtpDetailList = append(userEmailHasOtpDetailList, userEmailHasOtpDetailDAO)
+		return nil, nil
+	}
+	errObj, err := BatchGetItemInWaves(dynamoDBClient, tableName, batchGetItemKeys, parseResponseToDAO)
+	if errObj != nil || err != nil {
+		return userEmailHasOtpDetailList, errObj, err
 	}
 	// if len(userEmailHasOtpDetailList) < len(encryptedEmailList) {
 	// 	//for backend code, need to validate all encrypted email is equal in subset and superset

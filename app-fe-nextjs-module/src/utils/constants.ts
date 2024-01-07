@@ -19,4 +19,6 @@ export const LocalStorageKey = {
   lastRefreshDate: "dhpm-lastRefreshDate",
   appVersion: "dhpm-appVersion",
   loggedInUser: "dhpm-loggedInUser",
+  UserMonitorsLinkListAddRequestDTO: "dhpm-UserMonitorsLinkListAddRequestDTO",
+  UserMonitorsLinkListEditRequestDTO: "dhpm-UserMonitorsLinkListEditRequestDTO",
 }

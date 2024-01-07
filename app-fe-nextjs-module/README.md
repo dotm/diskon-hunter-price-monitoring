@@ -11,11 +11,9 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 ## TODO
 
-- implement MonitorPrice component
-  - update backend code for list and connect with frontend
-  - add page for add and edit
 - implement SearchItem component
   - kami akan bantu anda mencari barang sesuai harga yang anda inginkan. jika kami menemukan barang yang cocok, kami akan menghubungi anda menggunakan whatsapp (bukan SMS ataupun telepon).
+-remove kodok
 
 ## Getting Started
 

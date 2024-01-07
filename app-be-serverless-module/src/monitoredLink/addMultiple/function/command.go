@@ -135,29 +135,30 @@ func CommandV1Handler(
 		})
 	}
 	tableName := monitoredLink.GetStlMonitoredLinkDetailDynamoDBTableV1()
-	batchGetItemOutput, err := dependencies.DynamoDBClient.BatchGetItem(&dynamodb.BatchGetItemInput{
-		RequestItems: map[string]*dynamodb.KeysAndAttributes{
-			tableName: {
-				Keys: batchGetItemKeys,
-			},
-		},
-	})
-	if err != nil {
-		err = fmt.Errorf("error batchGetItemOutput from %s: %v", tableName, err)
-		return emptyResponse, createerror.InternalException(err)
-	}
 	existingStlMonitoredLinkDetailMap := map[string]monitoredLink.StlMonitoredLinkDetailDAOV1{}
-	for i := 0; i < len(batchGetItemOutput.Responses[tableName]); i++ {
-		monitoredLinkDAO := monitoredLink.StlMonitoredLinkDetailDAOV1{}
-		err = dynamodbattribute.UnmarshalMap(
-			batchGetItemOutput.Responses[tableName][i],
-			&monitoredLinkDAO,
-		)
-		if err != nil {
-			err = fmt.Errorf("error unmarshaling monitoredLinkDAO: %v", err)
-			return emptyResponse, createerror.InternalException(err)
+	parseResponseToDAO := func(response []map[string]*dynamodb.AttributeValue) (
+		errObj *serverresponse.ErrorObj,
+		err error,
+	) {
+		for i := 0; i < len(response); i++ {
+			monitoredLinkDAO := monitoredLink.StlMonitoredLinkDetailDAOV1{}
+			err = dynamodbattribute.UnmarshalMap(
+				response[i],
+				&monitoredLinkDAO,
+			)
+			if err != nil {
+				err = fmt.Errorf("error unmarshaling monitoredLinkDAO: %v", err)
+				return createerror.InternalException(err), err
+			}
+			existingStlMonitoredLinkDetailMap[monitoredLinkDAO.HubMonitoredLinkUrl] = monitoredLinkDAO
 		}
-		existingStlMonitoredLinkDetailMap[monitoredLinkDAO.HubMonitoredLinkUrl] = monitoredLinkDAO
+		return nil, nil
+	}
+	errObj, err := dynamodbhelper.BatchGetItemInWaves(dependencies.DynamoDBClient, tableName, batchGetItemKeys, parseResponseToDAO)
+	if errObj != nil || err != nil {
+		err = fmt.Errorf("error creating loggable string: %v", err)
+		dependencies.Logger.EnqueueErrorLog(err, true)
+		return emptyResponse, createerror.InternalException(err)
 	}
 
 	/* Persisting Data
@@ -228,7 +229,7 @@ func CommandV1Handler(
 		)
 	}
 
-	errObj, err := dynamodbhelper.TransactWriteItemsInWaves(dependencies.DynamoDBClient, transactItems)
+	errObj, err = dynamodbhelper.TransactWriteItemsInWaves(dependencies.DynamoDBClient, transactItems)
 	if errObj != nil {
 		//error already well described on the calling method
 		dependencies.Logger.EnqueueErrorLog(err, true)

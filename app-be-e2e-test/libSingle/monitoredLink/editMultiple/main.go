@@ -17,8 +17,8 @@ type MonitoredLinkRequestDTOV1 = dto.MonitoredLinkRequestDTOV1
 
 var DefaultRequestObject = GenerateRequestObject(GenerateRequestObjectArgs{
 	MonitoredLinkList: []dto.MonitoredLinkRequestDTOV1{
-		{HubMonitoredLinkUrl: "https://mock.com/product/1", AlertPrice: currencyutil.NewFromNumberString("150000", "IDR"), ActiveAlertMethodList: []constenum.AlertMethod{constenum.AlertMethodEmail}},
-		{HubMonitoredLinkUrl: "https://mock.com/product/2", AlertPrice: currencyutil.NewFromNumberString("140000", "IDR"), ActiveAlertMethodList: []constenum.AlertMethod{}},
+		{HubMonitoredLinkUrl: "https://mock.com/product/1", AlertPrice: currencyutil.NewFromNumberString("150000", "IDR"), ActiveAlertMethodList: []string{constenum.AlertMethodEmail.ToPascalCase()}},
+		{HubMonitoredLinkUrl: "https://mock.com/product/2", AlertPrice: currencyutil.NewFromNumberString("140000", "IDR"), ActiveAlertMethodList: []string{}},
 	},
 })
 

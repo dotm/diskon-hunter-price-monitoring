@@ -1,53 +1,54 @@
-import { LocalStorageKey } from "@/utils/constants";
-import { displayPriceInUI } from "@/utils/currencyutil";
+import { LocalStorageKey, backendBaseUrl, backendHeadersForPostRequest } from "@/utils/constants";
+import { displayCurrencyInUI } from "@/utils/currencyutil";
 import { displayDateInUI, displayDateTimeInUI } from "@/utils/datetime";
-import { LoggedInUserData, UserLinkDetail } from "@/utils/models";
+import { handleErrorInFrontend } from "@/utils/error";
+import { AvailableAlertMethodList, LoggedInUserData, UserLinkDetail } from "@/utils/models";
 import Link from "next/link";
 import { useRouter } from 'next/router';
 import { useEffect, useState } from "react";
 import useLocalStorage from "use-local-storage";
+import AlertMethodChip from "./AlertMethodChip";
 
-export default function MonitorPrice() {
+export default function MonitorPriceList() {
   const router = useRouter()
   const [loggedInUserData, setLoggedInUserData] =
     useLocalStorage<LoggedInUserData | undefined>(LocalStorageKey.loggedInUser, undefined)
   const [userLinkList, setUserLinkList] = useState<UserLinkDetail[]>([])
   const [loading, setLoading] = useState(false)
 
+  async function interactor_monitoredLinkList(){
+    try {
+      setLoading(true)
+      if(loggedInUserData === undefined){
+        throw new Error("Mohon sign in terlebih dahulu")
+      }
+      const monitoredLinkListRespJson = await fetch(`${backendBaseUrl}/v1/monitoredLink.list`, {
+        method: 'POST',
+        headers: backendHeadersForPostRequest(loggedInUserData.jwt),
+        body: JSON.stringify({}),
+      })
+      .then(response => response.json())
+      if(!monitoredLinkListRespJson.ok || !monitoredLinkListRespJson.data){
+        throw new Error(monitoredLinkListRespJson.err?.code ?? "error monitoredLinkListRespJson")
+      }
+      console.log("kodok",monitoredLinkListRespJson.data)
+      setUserLinkList(monitoredLinkListRespJson.data)
+    } catch (error) {
+      handleErrorInFrontend(error)
+    } finally {
+      setLoading(false)
+    }
+  }
   useEffect(() => {
-    const mockData: UserLinkDetail[] = [
-      {
-        HubUserId: "abc1234567890",
-        HubMonitoredLinkUrl: "https://mock.com/product/1",
-        AlertPrice: {amount: 10000, currency: "IDR"},
-        ActiveAlertMethodList: ["Email"],
-        PaidAlertMethodList: ["Email", "WhatsApp"],
-        TimeExpired: new Date(11111111111111),
-        LatestPrice: {amount: 9000, currency: "IDR"},
-        TimeLatestScrapped: new Date(),
-      },
-      {
-        HubUserId: "abc1234567890",
-        HubMonitoredLinkUrl: "https://mock.com/product/2",
-        AlertPrice: {amount: 20000, currency: "IDR"},
-        ActiveAlertMethodList: [],
-        PaidAlertMethodList: [],
-        TimeExpired: new Date(11111111111111),
-        LatestPrice: {amount: 30000, currency: "IDR"},
-        TimeLatestScrapped: new Date(),
-      },
-    ]
-    setUserLinkList(mockData)
+    interactor_monitoredLinkList()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [true])
   
   return (
     <div className="space-y-3">
       {
-        loggedInUserData !== undefined
+        loggedInUserData === undefined
         ?
-        <></>
-        :
         <Link href="/settings" className="bg-gray-800 hover:bg-gray-700 outline-green-500 text-white block w-[100%] outline pb-2 pt-1 px-3 rounded-xl mx-auto">
           <p className="text-sm">
           Jika anda sudah pernah melakukan sign up, silahkan klik text ini untuk sign in ke akun anda.
@@ -55,6 +56,8 @@ export default function MonitorPrice() {
           Jika anda belum memiliki akun, pembuatan akun akan dilakukan setelah anda melakukan pembayaran.
           </p>
         </Link>
+        :
+        <></>
       }
       <Link href="/searchItem" className="bg-gray-800 hover:bg-gray-700 outline-yellow-500 text-white block w-[100%] outline pb-2 pt-1 px-3 rounded-xl mx-auto">
         <p className="text-sm">
@@ -91,7 +94,18 @@ export default function MonitorPrice() {
           </button>
         </div>
         {
-          userLinkList.length === 0
+          loading
+          ?
+          <div className="bg-gray-800 text-white block w-[100%] pb-3 pt-2 mx-auto">
+            <p className="text-center">
+              Mohon tunggu. Aplikasi sedang mengambil data...
+            </p>
+          </div>
+          :
+          <></>
+        }
+        {
+          !loading && userLinkList.length === 0
           ?
           <div className="bg-gray-800 text-white block w-[100%] pb-3 pt-2 mx-auto">
             <p className="text-center">
@@ -101,8 +115,14 @@ export default function MonitorPrice() {
             </p>
           </div>
           :
+          <></>
+        }
+        {
+          !loading && userLinkList.length > 0
+          ?
           <>
             {userLinkList.map(userLink => {
+              console.log("kodok 1", userLink)
               return (
                 <a key={userLink.HubMonitoredLinkUrl} href={userLink.HubMonitoredLinkUrl} target="_blank" className="block px-2 pt-2 pb-2 hover:bg-gray-700">
                   <p className="underline">
@@ -110,27 +130,40 @@ export default function MonitorPrice() {
                   </p>
                   <p>
                     Harga terakhir: <strong>{
-                    displayPriceInUI(userLink.LatestPrice)
+                    displayCurrencyInUI(userLink.LatestPrice)
                     }</strong> (pada <strong>{
                     displayDateTimeInUI(userLink.TimeLatestScrapped)
                     }</strong>)
                   </p>
                   <p>
-                    Harga yang anda input: {displayPriceInUI(userLink.AlertPrice)}
+                    Harga yang anda input: {displayCurrencyInUI(userLink.AlertPrice)}
                   </p>
                   <p>
                     Berhenti dimonitor pada: {displayDateInUI(userLink.TimeExpired)}
                   </p>
+                  <div className="flex flex-row flex-wrap">
+                    {
+                      AvailableAlertMethodList
+                      .filter(alertMethod=>userLink.PaidAlertMethodList?.includes(alertMethod.backendValue))
+                      .map(alertMethod=>{
+                        return (
+                          <AlertMethodChip
+                            key={alertMethod.backendValue}
+                            name={alertMethod.frontendValue}
+                            active={userLink.ActiveAlertMethodList?.includes(alertMethod.backendValue) ?? false}
+                          />
+                        )
+                      })
+                    }
+                  </div>
                 </a>
               )
             })}
           </>
+          :
+          <></>
         }
       </div>
-      {
-        <>
-        </>
-      }
     </div>
   )
 }

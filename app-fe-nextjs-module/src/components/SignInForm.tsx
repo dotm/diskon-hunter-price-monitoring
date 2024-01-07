@@ -25,7 +25,7 @@ export default function SignInForm() {
         }),
       })
       .then(response => response.json())
-      if(!signInRespJson.ok || signInRespJson.data === undefined){
+      if(!signInRespJson.ok || !signInRespJson.data){
         throw new Error(signInRespJson.err?.code ?? "error signInRespJson")
       }
       const jwt = cleanUpJWT(signInRespJson.data.JwtCookieString)
@@ -48,12 +48,16 @@ export default function SignInForm() {
       if(loggedInUserData === undefined){
         throw new Error("Mohon sign in terlebih dahulu")
       }
-      const respJson = await fetch(`${backendBaseUrl}/v1/user.me`, {
+      const userMeRespJson = await fetch(`${backendBaseUrl}/v1/user.me`, {
         method: 'POST',
         headers: backendHeadersForPostRequest(loggedInUserData.jwt),
         body: JSON.stringify({}),
       })
       .then(response => response.json())
+      if(!userMeRespJson.ok || !userMeRespJson.data){
+        throw new Error(userMeRespJson.err?.code ?? "error userMeRespJson")
+      }
+      //do something with userMeRespJson.data
     } catch (error) {
       handleErrorInFrontend(error)
     } finally {

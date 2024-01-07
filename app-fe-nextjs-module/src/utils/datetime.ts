@@ -6,7 +6,10 @@ export function displayDateInUI(date: Date): string {
     'dd MMM yyyy',
   )
 }
-export function displayDateTimeInUI(date: Date): string {
+export function displayDateTimeInUI(date: Date|null): string {
+  if(date === null){
+    return "-"
+  }
   return format(
     date,
     'dd MMM yyyy HH:mm',

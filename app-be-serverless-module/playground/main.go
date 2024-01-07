@@ -14,7 +14,7 @@
 package main
 
 import (
-	"diskon-hunter/price-monitoring/shared/emailutil"
+	"diskon-hunter/price-monitoring/shared/currencyutil"
 	"fmt"
 )
 
@@ -31,5 +31,5 @@ func main() {
 	// fmt.Println(c)
 	// fmt.Println(b)
 	// fmt.Println(a)
-	fmt.Println(emailutil.GenerateOTP())
+	fmt.Println(currencyutil.NewFromNumberString("12.34", "IDR"))
 }

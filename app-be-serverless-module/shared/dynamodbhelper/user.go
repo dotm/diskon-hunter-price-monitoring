@@ -50,28 +50,27 @@ func GetUserListByFilter(
 		})
 	}
 	tableName := user.GetStlUserDetailDynamoDBTableV1()
-	batchGetItemOutput, err := dynamoDBClient.BatchGetItem(&dynamodb.BatchGetItemInput{
-		RequestItems: map[string]*dynamodb.KeysAndAttributes{
-			tableName: {
-				Keys: batchGetItemKeys,
-			},
-		},
-	})
-	if err != nil {
-		err = fmt.Errorf("error batchGetItemOutput from %s: %v", tableName, err)
-		return userList, createerror.InternalException(err), err
-	}
-	for i := 0; i < len(batchGetItemOutput.Responses[tableName]); i++ {
-		userEmailAuthenticationDAO := user.StlUserDetailDAOV1{}
-		err = dynamodbattribute.UnmarshalMap(
-			batchGetItemOutput.Responses[tableName][i],
-			&userEmailAuthenticationDAO,
-		)
-		if err != nil {
-			err = fmt.Errorf("error unmarshaling userEmailAuthenticationDAO: %v", err)
-			return userList, createerror.InternalException(err), err
+	parseResponseToDAO := func(response []map[string]*dynamodb.AttributeValue) (
+		errObj *serverresponse.ErrorObj,
+		err error,
+	) {
+		for i := 0; i < len(response); i++ {
+			userEmailAuthenticationDAO := user.StlUserDetailDAOV1{}
+			err = dynamodbattribute.UnmarshalMap(
+				response[i],
+				&userEmailAuthenticationDAO,
+			)
+			if err != nil {
+				err = fmt.Errorf("error unmarshaling userEmailAuthenticationDAO: %v", err)
+				return createerror.InternalException(err), err
+			}
+			userList = append(userList, userEmailAuthenticationDAO)
 		}
-		userList = append(userList, userEmailAuthenticationDAO)
+		return nil, nil
+	}
+	errObj, err := BatchGetItemInWaves(dynamoDBClient, tableName, batchGetItemKeys, parseResponseToDAO)
+	if errObj != nil || err != nil {
+		return userList, errObj, err
 	}
 	if len(userList) < len(userIdList) {
 		subsetIdListThatIsNotInSuperset := []string{}

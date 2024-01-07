@@ -8,6 +8,7 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 
+	"diskon-hunter/price-monitoring/shared/constenum"
 	"diskon-hunter/price-monitoring/shared/dynamodbhelper"
 	"diskon-hunter/price-monitoring/shared/jwttoken"
 	"diskon-hunter/price-monitoring/shared/lambdahelper"
@@ -45,10 +46,17 @@ func LambdaHandlerV1(ctx context.Context, req events.APIGatewayProxyRequest) (ev
 	if errObj == nil {
 		monitoredLinkList := []monitoredLinkAddMultiple.MonitoredLinkDetailCommandV1{}
 		for i := 0; i < len(reqBody.MonitoredLinkList); i++ {
+			alertMethodList := []constenum.AlertMethod{}
+			for j := 0; j < len(reqBody.MonitoredLinkList[i].AlertMethodList); j++ {
+				alertMethod := constenum.NewAlertMethod(reqBody.MonitoredLinkList[i].AlertMethodList[j])
+				if alertMethod != constenum.UnknownAlertMethod {
+					alertMethodList = append(alertMethodList, alertMethod)
+				}
+			}
 			monitoredLinkList = append(monitoredLinkList, monitoredLinkAddMultiple.NewMonitoredLinkDetailCommandV1(
 				reqBody.MonitoredLinkList[i].HubMonitoredLinkUrl, //HubMonitoredLinkUrl
 				reqBody.MonitoredLinkList[i].AlertPrice,          //AlertPrice
-				reqBody.MonitoredLinkList[i].AlertMethodList,     //AlertMethodList
+				alertMethodList,                                  //AlertMethodList
 			))
 		}
 		cmd := monitoredLinkAddMultiple.NewCommandV1(

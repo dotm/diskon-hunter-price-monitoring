@@ -167,8 +167,8 @@ func CheckDatabaseForNormalUserFlow() {
 	thirdProductUrl := "https://mock.com/product/3"
 	monitoredLinkAddMultipleRequestDTO := monitoredLinkAddMultiple.GenerateRequestObject(monitoredLinkAddMultiple.GenerateRequestObjectArgs{
 		MonitoredLinkList: []monitoredLinkAddMultiple.MonitoredLinkRequestDTOV1{
-			{HubMonitoredLinkUrl: firstProductUrl, AlertPrice: currencyutil.NewFromNumberString("50000", "IDR"), AlertMethodList: []constenum.AlertMethod{constenum.AlertMethodEmail, constenum.AlertMethodPushNotification}},
-			{HubMonitoredLinkUrl: twiceInputProductUrl, AlertPrice: currencyutil.NewFromNumberString("40000", "IDR"), AlertMethodList: []constenum.AlertMethod{}},
+			{HubMonitoredLinkUrl: firstProductUrl, AlertPrice: currencyutil.NewFromNumberString("50000", "IDR"), AlertMethodList: []string{constenum.AlertMethodEmail.ToPascalCase(), constenum.AlertMethodPushNotification.ToPascalCase()}},
+			{HubMonitoredLinkUrl: twiceInputProductUrl, AlertPrice: currencyutil.NewFromNumberString("40000", "IDR"), AlertMethodList: []string{}},
 		},
 	})
 	fmt.Printf("__execute__ monitoredLinkAddMultipleRequestDTO: %v\n", monitoredLinkAddMultipleRequestDTO)
@@ -200,8 +200,8 @@ func CheckDatabaseForNormalUserFlow() {
 	}
 	monitoredLinkAddMultipleRequestDTO = monitoredLinkAddMultiple.GenerateRequestObject(monitoredLinkAddMultiple.GenerateRequestObjectArgs{
 		MonitoredLinkList: []monitoredLinkAddMultiple.MonitoredLinkRequestDTOV1{
-			{HubMonitoredLinkUrl: thirdProductUrl, AlertPrice: currencyutil.NewFromNumberString("50000", "IDR"), AlertMethodList: []constenum.AlertMethod{constenum.AlertMethodEmail, constenum.AlertMethodPushNotification}},
-			{HubMonitoredLinkUrl: twiceInputProductUrl, AlertPrice: currencyutil.NewFromNumberString("40000", "IDR"), AlertMethodList: []constenum.AlertMethod{}},
+			{HubMonitoredLinkUrl: thirdProductUrl, AlertPrice: currencyutil.NewFromNumberString("50000", "IDR"), AlertMethodList: []string{constenum.AlertMethodEmail.ToPascalCase(), constenum.AlertMethodPushNotification.ToPascalCase()}},
+			{HubMonitoredLinkUrl: twiceInputProductUrl, AlertPrice: currencyutil.NewFromNumberString("40000", "IDR"), AlertMethodList: []string{}},
 		},
 	})
 	fmt.Printf("__execute__ monitoredLinkAddMultipleRequestDTO: %v\n", monitoredLinkAddMultipleRequestDTO)
@@ -296,8 +296,8 @@ func CheckDatabaseForNormalUserFlow() {
 
 	monitoredLinkEditMultipleRequestDTO := monitoredLinkEditMultiple.GenerateRequestObject(monitoredLinkEditMultiple.GenerateRequestObjectArgs{
 		MonitoredLinkList: []monitoredLinkEditMultiple.MonitoredLinkRequestDTOV1{
-			{HubMonitoredLinkUrl: firstProductUrl, AlertPrice: currencyutil.NewFromNumberString("150000", "IDR"), ActiveAlertMethodList: []constenum.AlertMethod{constenum.AlertMethodEmail}},
-			{HubMonitoredLinkUrl: thirdProductUrl, AlertPrice: currencyutil.NewFromNumberString("150000", "IDR"), ActiveAlertMethodList: []constenum.AlertMethod{}},
+			{HubMonitoredLinkUrl: firstProductUrl, AlertPrice: currencyutil.NewFromNumberString("150000", "IDR"), ActiveAlertMethodList: []string{constenum.AlertMethodEmail.ToPascalCase()}},
+			{HubMonitoredLinkUrl: thirdProductUrl, AlertPrice: currencyutil.NewFromNumberString("150000", "IDR"), ActiveAlertMethodList: []string{}},
 		},
 	})
 	fmt.Printf("__execute__ monitoredLinkEditMultipleRequestDTO: %v\n", monitoredLinkEditMultipleRequestDTO)

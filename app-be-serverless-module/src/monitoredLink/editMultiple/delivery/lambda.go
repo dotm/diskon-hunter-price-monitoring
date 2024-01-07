@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 
+	"diskon-hunter/price-monitoring/shared/constenum"
 	"diskon-hunter/price-monitoring/shared/dynamodbhelper"
 	"diskon-hunter/price-monitoring/shared/jwttoken"
 	"diskon-hunter/price-monitoring/shared/lambdahelper"
@@ -38,10 +39,17 @@ func LambdaHandlerV1(ctx context.Context, req events.APIGatewayProxyRequest) (ev
 	if errObj == nil {
 		monitoredLinkList := []monitoredLinkEditMultiple.MonitoredLinkDetailCommandV1{}
 		for i := 0; i < len(reqBody.MonitoredLinkList); i++ {
+			activeAlertMethodList := []constenum.AlertMethod{}
+			for j := 0; j < len(reqBody.MonitoredLinkList[i].ActiveAlertMethodList); j++ {
+				activeAlertMethod := constenum.NewAlertMethod(reqBody.MonitoredLinkList[i].ActiveAlertMethodList[j])
+				if activeAlertMethod != constenum.UnknownAlertMethod {
+					activeAlertMethodList = append(activeAlertMethodList, activeAlertMethod)
+				}
+			}
 			monitoredLinkList = append(monitoredLinkList, monitoredLinkEditMultiple.NewMonitoredLinkDetailCommandV1(
-				reqBody.MonitoredLinkList[i].HubMonitoredLinkUrl,   //HubMonitoredLinkUrl
-				reqBody.MonitoredLinkList[i].ActiveAlertMethodList, //ActiveAlertMethodList
-				reqBody.MonitoredLinkList[i].AlertPrice,            //AlertPrice
+				reqBody.MonitoredLinkList[i].HubMonitoredLinkUrl, //HubMonitoredLinkUrl
+				activeAlertMethodList,                            //ActiveAlertMethodList
+				reqBody.MonitoredLinkList[i].AlertPrice,          //AlertPrice
 			))
 		}
 		cmd := monitoredLinkEditMultiple.NewCommandV1(

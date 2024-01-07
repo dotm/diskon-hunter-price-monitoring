@@ -46,6 +46,7 @@ func NewFromNumberString(value, unit string) Scalar {
 			if value[i] == '0' {
 				leadingZero++
 			} else {
+				leadingZero += len(value) - 1 - i
 				significand += value[i:]
 				break
 			}

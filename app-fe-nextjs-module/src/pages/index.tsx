@@ -1,4 +1,4 @@
-import MonitorPrice from '@/components/MonitorPrice'
+import MonitorPriceList from '@/components/MonitorPriceList'
 import Sidebar from '@/components/Sidebar'
 import { refreshIfNewAppVersionAvailable } from '@/utils/appversionutil'
 import { LocalStorageKey } from '@/utils/constants'
@@ -16,7 +16,7 @@ export default function HomePage() {
 
   return (
     <Sidebar pageTitle='Monitor Harga' navTitle='Monitor Harga'>
-      <MonitorPrice />
+      <MonitorPriceList />
     </Sidebar>
   )
 }
