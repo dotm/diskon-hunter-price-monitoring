@@ -7,6 +7,10 @@ import (
 	"strings"
 )
 
+// add IDR, USD as CurrencyUnit enum later ~kodok
+const IDR = "IDR"
+const USD = "USD"
+
 type Currency struct {
 	Significand  string `json:"s"`
 	Exponent     string `json:"e"`
@@ -19,6 +23,13 @@ func NewZeroCurrency(currencyUnit string) Currency {
 		Exponent:     "1",
 		CurrencyUnit: currencyUnit,
 	}
+}
+
+const indexNotFound = -1
+
+func NewFromExcelString(value, currencyUnit string) Currency {
+	value = strings.Replace(value, ",", ".", -1) //replace all comma with dot
+	return NewFromNumberString(value, currencyUnit)
 }
 
 func NewFromNumberString(value, currencyUnit string) Currency {
@@ -54,14 +65,14 @@ func NewFromNumberString(value, currencyUnit string) Currency {
 		exponent = fmt.Sprintf("-%d", leadingZero)
 	} else {
 		//value has positive exponent
-		var dotIndex = -1
+		var dotIndex = indexNotFound
 		for i := 0; i < len(value); i++ {
 			if value[i] == '.' {
 				dotIndex = i
 				break
 			}
 		}
-		if dotIndex == -1 {
+		if dotIndex == indexNotFound {
 			//value is integer only
 			value = fmt.Sprintf("%s.0", value)
 		}
@@ -77,7 +88,7 @@ func NewFromNumberString(value, currencyUnit string) Currency {
 
 	//trim trailing zeros after comma from significand
 	commaSpotted := false
-	firstZeroAfterCommaIndex := -1
+	firstZeroAfterCommaIndex := indexNotFound
 	for i := 0; i < len(significand); i++ {
 		if significand[i] == '.' {
 			commaSpotted = true
@@ -85,16 +96,19 @@ func NewFromNumberString(value, currencyUnit string) Currency {
 		}
 
 		if commaSpotted {
-			if significand[i] == '0' && firstZeroAfterCommaIndex == -1 {
+			if significand[i] == '0' && firstZeroAfterCommaIndex == indexNotFound {
 				firstZeroAfterCommaIndex = i
 			} else if significand[i] != '0' {
-				firstZeroAfterCommaIndex = -1
+				firstZeroAfterCommaIndex = indexNotFound
 			}
 		}
 
-		if i == len(significand)-1 /*last index*/ && firstZeroAfterCommaIndex != 1 {
+		if i == len(significand)-1 /*last index*/ && commaSpotted && firstZeroAfterCommaIndex != indexNotFound {
 			significand = significand[:firstZeroAfterCommaIndex]
 		}
+	}
+	if significand[len(significand)-1] == '.' { //if last char is .
+		significand = significand + "0"
 	}
 
 	return Currency{
@@ -112,4 +126,49 @@ func (x Currency) ToDouble() float64 {
 
 func (x Currency) Add(y Currency) Currency {
 	return NewFromNumberString(fmt.Sprintf("%f", x.ToDouble()+y.ToDouble()), x.CurrencyUnit)
+}
+
+func (x Currency) Substract(y Currency) Currency {
+	//validate unit is the same, implement manually (not using double operation) ~kodok
+	return NewFromNumberString(fmt.Sprintf("%f", x.ToDouble()-y.ToDouble()), x.CurrencyUnit)
+}
+
+func (x Currency) IsNotZero() bool {
+	return !x.IsZero()
+}
+func (x Currency) IsZero() bool {
+	for i := 0; i < len(x.Significand); i++ {
+		if x.Significand[i] != '0' && x.Significand[i] != '.' && x.Significand[i] != '-' {
+			return false
+		}
+	}
+	return true
+}
+
+func (x Currency) IsNegative() bool {
+	return strings.HasPrefix(x.Significand, "-")
+}
+
+func (x Currency) IsPositive() bool {
+	return !x.IsNegative()
+}
+
+func (x Currency) IsLessThanOrEqualTo(b Currency) bool {
+	return x.IsLessThan(b) || x.IsEqualTo(b)
+}
+
+func (x Currency) IsLessThan(b Currency) bool {
+	//TODO: implement directly using significand and exponent
+	//and then copy to Currency ~kodok
+	return x.Substract(b).IsNegative()
+}
+
+func (x Currency) IsEqualTo(b Currency) bool {
+	return x.ToDouble() == b.ToDouble()
+
+	//the code below hasn't account for when significand is different (2.0 and 2).
+	//this can happen when the currency is loaded from JSON, thus bypassing NewFromNumberString.
+	// return significand == b.significand &&
+	//     exponent == b.exponent &&
+	//     unit == b.unit;
 }

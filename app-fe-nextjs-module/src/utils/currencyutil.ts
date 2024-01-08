@@ -39,6 +39,8 @@ function onlyContainsZeroForNumber(s: string){
 	return true
 }
 
+const indexNotFound = -1
+
 export function convertNumberStringToCurrency(value:string,currencyUnit:"IDR"):Currency{
   var significand = ""
 	var exponent = ""
@@ -72,14 +74,14 @@ export function convertNumberStringToCurrency(value:string,currencyUnit:"IDR"):C
 		exponent = `-${leadingZero}`
 	} else {
 		//value has positive exponent
-		var dotIndex = -1
+		var dotIndex = indexNotFound
 		for (let i = 0; i < value.length; i++) {
 			if (value[i] === '.') {
 				dotIndex = i
 				break
 			}
 		}
-		if (dotIndex === -1) {
+		if (dotIndex === indexNotFound) {
 			//value is integer only
 			value = `${value}.0`
 		}
@@ -95,7 +97,7 @@ export function convertNumberStringToCurrency(value:string,currencyUnit:"IDR"):C
 
 	//trim trailing zeros after comma from significand
 	let commaSpotted = false
-	let firstZeroAfterCommaIndex = -1
+	let firstZeroAfterCommaIndex = indexNotFound
 	for (let i = 0; i < significand.length; i++) {
 		if (significand[i] === '.') {
 			commaSpotted = true
@@ -103,14 +105,14 @@ export function convertNumberStringToCurrency(value:string,currencyUnit:"IDR"):C
 		}
 
 		if (commaSpotted) {
-			if (significand[i] === '0' && firstZeroAfterCommaIndex === -1) {
+			if (significand[i] === '0' && firstZeroAfterCommaIndex === indexNotFound) {
 				firstZeroAfterCommaIndex = i
 			} else if (significand[i] !== '0') {
-				firstZeroAfterCommaIndex = -1
+				firstZeroAfterCommaIndex = indexNotFound
 			}
 		}
 
-		if (i === (significand.length - 1) /*last index*/ && commaSpotted && firstZeroAfterCommaIndex !== 1) {
+		if (i === (significand.length - 1) /*last index*/ && commaSpotted && firstZeroAfterCommaIndex !== indexNotFound) {
 			significand = significand.slice(0,firstZeroAfterCommaIndex)
 		}
 	}
