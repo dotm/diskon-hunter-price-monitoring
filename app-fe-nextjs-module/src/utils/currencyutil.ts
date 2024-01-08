@@ -26,7 +26,7 @@ export function convertCurrencyToNumber(currency:Currency):number{
   return s * Math.pow(10,e)
 }
 
-export function convertCurrencyToIntegerString(currency:Currency):string{
+export function convertCurrencyToNumberString(currency:Currency):string{
   return `${convertCurrencyToNumber(currency)}`
 }
 

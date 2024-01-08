@@ -1,6 +1,6 @@
 import { refreshIfNewAppVersionAvailable } from "@/utils/appversionutil";
 import { LocalStorageKey, backendBaseUrl, backendHeadersForPostRequest } from "@/utils/constants";
-import { convertCurrencyToIntegerString, convertCurrencyToNumber, convertNumberStringToCurrency, displayCurrencyInUI } from "@/utils/currencyutil";
+import { convertCurrencyToNumber, convertCurrencyToNumberString, convertNumberStringToCurrency, displayCurrencyInUI } from "@/utils/currencyutil";
 import { handleErrorInFrontend } from "@/utils/error";
 import { AvailableAlertMethodList, LoggedInUserData, UserLinkDetail, UserMonitorsLinkDetailEditRequestDTO, UserMonitorsLinkListEditRequestDTO, emptyUserMonitorsLinkListEditRequestDTO } from "@/utils/models";
 import Link from "next/link";
@@ -62,7 +62,7 @@ export default function MonitorPriceEditLinks({
         MonitoredLinkList: monitoredLinkListRespJson.data.map((o: UserLinkDetail):UserMonitorsLinkDetailEditRequestDTO=>{
           return {
             ...o,
-            AlertPriceString: convertCurrencyToIntegerString(o.AlertPrice)
+            AlertPriceString: convertCurrencyToNumberString(o.AlertPrice)
           }
         })
       }

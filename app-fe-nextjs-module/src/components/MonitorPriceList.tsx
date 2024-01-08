@@ -1,5 +1,5 @@
 import { LocalStorageKey, backendBaseUrl, backendHeadersForPostRequest } from "@/utils/constants";
-import { displayCurrencyInUI } from "@/utils/currencyutil";
+import { convertCurrencyToNumber, displayCurrencyInUI } from "@/utils/currencyutil";
 import { displayDateInUI, displayDateTimeInUI } from "@/utils/datetime";
 import { handleErrorInFrontend } from "@/utils/error";
 import { AvailableAlertMethodList, LoggedInUserData, UserLinkDetail } from "@/utils/models";
@@ -43,7 +43,7 @@ export default function MonitorPriceList() {
     interactor_monitoredLinkList()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [true])
-  
+
   return (
     <div className="space-y-3">
       {
@@ -121,44 +121,85 @@ export default function MonitorPriceList() {
           !loading && userLinkList.length > 0
           ?
           <>
-            {userLinkList.map(userLink => {
-              console.log("kodok 1", userLink)
-              return (
-                <a key={userLink.HubMonitoredLinkUrl} href={userLink.HubMonitoredLinkUrl} target="_blank" className="block px-2 pt-2 pb-2 hover:bg-gray-700">
-                  <p className="underline">
-                    {userLink.HubMonitoredLinkUrl}
-                  </p>
-                  <p>
-                    Harga terakhir: <strong>{
-                    displayCurrencyInUI(userLink.LatestPrice)
-                    }</strong> (pada <strong>{
-                    displayDateTimeInUI(userLink.TimeLatestScrapped)
-                    }</strong>)
-                  </p>
-                  <p>
-                    Harga yang anda input: {displayCurrencyInUI(userLink.AlertPrice)}
-                  </p>
-                  <p>
-                    Berhenti dimonitor pada: {displayDateInUI(userLink.TimeExpired)}
-                  </p>
-                  <div className="flex flex-row flex-wrap">
-                    {
-                      AvailableAlertMethodList
-                      .filter(alertMethod=>userLink.PaidAlertMethodList?.includes(alertMethod.backendValue))
-                      .map(alertMethod=>{
-                        return (
-                          <AlertMethodChip
-                            key={alertMethod.backendValue}
-                            name={alertMethod.frontendValue}
-                            active={userLink.ActiveAlertMethodList?.includes(alertMethod.backendValue) ?? false}
-                          />
-                        )
-                      })
-                    }
-                  </div>
-                </a>
-              )
-            })}
+            {userLinkList
+              .sort((a,b)=>{
+
+                //null LatestPrice should be at the bottom
+                if(a.LatestPrice === null && b.LatestPrice === null){
+                  return 0 //aEqualsB
+                }else if(a.LatestPrice === null){ //and b is not null (because the first if condition)
+                  return 1 //bBeforeA
+                }else if(b.LatestPrice === null){ //and a is not null (because the first if condition)
+                  return -1 //aBeforeB
+                }else{
+                  //here both a and b LatestPrice is not null
+                  
+                  //more negative difference should be put more on top
+                  //because it means the more that user can save from the price difference
+                  const differenceForA = convertCurrencyToNumber(a.LatestPrice) - convertCurrencyToNumber(a.AlertPrice)
+                  const differenceForB = convertCurrencyToNumber(b.LatestPrice) - convertCurrencyToNumber(b.AlertPrice)
+                  return differenceForA - differenceForB
+                }
+              })
+              .map(userLink => {
+                const latestPriceIsBelowAlertPrice = userLink.LatestPrice &&
+                  convertCurrencyToNumber(userLink.LatestPrice) <= convertCurrencyToNumber(userLink.AlertPrice)
+                console.log("kodok 1", userLink)
+                
+                return (
+                  <a key={userLink.HubMonitoredLinkUrl} href={userLink.HubMonitoredLinkUrl} target="_blank" className="block px-2 pt-2 pb-2 hover:bg-gray-700">
+                    <p className="underline">
+                      {userLink.HubMonitoredLinkUrl}
+                    </p>
+                    <p>
+                      {
+                        !userLink.LatestPrice
+                        ?
+                        <>Belum ada data harga</>
+                        :
+                        <>
+                          Harga terakhir:{" "}
+                          <strong
+                            className={latestPriceIsBelowAlertPrice ? "text-green-500" : "text-white"}
+                          >
+                            {displayCurrencyInUI(userLink.LatestPrice)}
+                          </strong>
+                          {
+                            userLink.TimeLatestScrapped
+                            ?
+                            <>
+                            {" "}(pada <strong>{displayDateTimeInUI(userLink.TimeLatestScrapped)}</strong>)
+                            </>
+                            : <></>
+                          }
+                        </>
+                      }
+                    </p>
+                    <p>
+                      Harga yang anda input: {displayCurrencyInUI(userLink.AlertPrice)}
+                    </p>
+                    <p>
+                      Berhenti dimonitor pada: {displayDateInUI(userLink.TimeExpired)}
+                    </p>
+                    <div className="flex flex-row flex-wrap">
+                      {
+                        AvailableAlertMethodList
+                        .filter(alertMethod=>userLink.PaidAlertMethodList?.includes(alertMethod.backendValue))
+                        .map(alertMethod=>{
+                          return (
+                            <AlertMethodChip
+                              key={alertMethod.backendValue}
+                              name={alertMethod.frontendValue}
+                              active={userLink.ActiveAlertMethodList?.includes(alertMethod.backendValue) ?? false}
+                            />
+                          )
+                        })
+                      }
+                    </div>
+                  </a>
+                )
+              })
+            }
           </>
           :
           <></>
