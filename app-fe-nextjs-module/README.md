@@ -13,7 +13,12 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 - implement SearchItem component
   - kami akan bantu anda mencari barang sesuai harga yang anda inginkan. jika kami menemukan barang yang cocok, kami akan menghubungi anda menggunakan whatsapp (bukan SMS ataupun telepon).
--remove kodok
+- remove kodok
+
+## Deployment Checklist
+
+- Deploy to S3 Website and CloudFront CDN
+- update appVersion lambda
 
 ## Getting Started
 

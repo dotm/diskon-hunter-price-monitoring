@@ -13,8 +13,6 @@ export default function AlertMethodChip({
     <button
       type="button"
       className={`
-        mr-2
-        mt-2
         inline-flex items-center gap-x-1.5 rounded-full px-3 py-2 text-sm font-semibold text-white shadow-sm
         ${active ?
           "bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"

@@ -186,7 +186,7 @@ export default function MonitorPriceAddLinks({
                           />
                         </div>
                       </div>
-                      <div className="flex flex-row mt-2 flex-wrap">
+                      <div className="flex flex-row gap-2 mt-2 flex-wrap">
                         {
                           AvailableAlertMethodList.map(alertMethod=>{
                             return (

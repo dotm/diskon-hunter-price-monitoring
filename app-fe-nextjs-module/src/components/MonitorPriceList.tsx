@@ -70,7 +70,7 @@ export default function MonitorPriceList() {
         <p className="text-sm">
         Perlu bantuan? Punya pertanyaan, saran, atau kritik?
         <br/>
-        Silahkan kontak kami dengan klik disini
+        Silahkan kontak kami dengan klik disini.
         </p>
       </Link>
       <div className="divide-y divide-gray-400 bg-gray-800 text-white block w-[100%] px-3 pb-3 rounded-xl mx-auto">
