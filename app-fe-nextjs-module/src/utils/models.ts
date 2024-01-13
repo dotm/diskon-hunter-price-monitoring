@@ -4,6 +4,7 @@ export interface LoggedInUserData {
   jwt: string,
   userId: string,
   email: string,
+  whatsAppNumber: string,
 }
 
 export const AlertMethod = {

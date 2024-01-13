@@ -147,7 +147,8 @@ func CheckDatabaseForNormalUserFlow() {
 	jwtToken := userSignInResult.JWTCookieString
 
 	userEditRequestDTO := userEdit.GenerateRequestObject(userEdit.GenerateRequestObjectArgs{
-		Password: password,
+		Password:       password,
+		WhatsAppNumber: "+6281",
 	})
 	fmt.Printf("__execute__ userEditRequestDTO: %v\n", userEditRequestDTO)
 	userEditResult, err := userEdit.Execute(userEditRequestDTO, jwtToken)

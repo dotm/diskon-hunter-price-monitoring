@@ -6,6 +6,7 @@ import (
 	"diskon-hunter/price-monitoring/shared/dynamodbhelper"
 	"diskon-hunter/price-monitoring/shared/lazylogger"
 	"diskon-hunter/price-monitoring/shared/password"
+	"diskon-hunter/price-monitoring/shared/phoneutil"
 	"diskon-hunter/price-monitoring/shared/serverresponse"
 	"diskon-hunter/price-monitoring/shared/stringmasker"
 	"diskon-hunter/price-monitoring/src/user"
@@ -23,17 +24,20 @@ type CommandV1 struct {
 	Version         string
 	RequesterUserId string
 	Password        string
+	WhatsAppNumber  string
 }
 
 func NewCommandV1(
 	Version string, //should follow the struct name suffix
 	RequesterUserId string,
 	Password string,
+	WhatsAppNumber string,
 ) CommandV1 {
 	return CommandV1{
 		Version:         Version,
 		RequesterUserId: RequesterUserId,
 		Password:        Password,
+		WhatsAppNumber:  WhatsAppNumber,
 	}
 }
 
@@ -41,8 +45,9 @@ func (x CommandV1) createLoggableString() (string, error) {
 	//strip any sensitive information.
 	//strip any fields that are too large to be printed (e.g. image blob).
 	loggableCommand := CommandV1{
-		Version:  x.Version,
-		Password: stringmasker.Password(x.Password),
+		Version:        x.Version,
+		Password:       stringmasker.Password(x.Password),
+		WhatsAppNumber: stringmasker.Mobile(x.WhatsAppNumber),
 	}
 	byteSlice, err := json.Marshal(loggableCommand)
 	if err != nil {
@@ -84,12 +89,6 @@ func CommandV1Handler(
 	/* Business Logic
 	Perform business logic preferably through domain model's methods.
 	*/
-	hashedPassword, err := password.Hash(command.Password)
-	if err != nil {
-		err = fmt.Errorf("error hashing password: %v", err)
-		dependencies.Logger.EnqueueErrorLog(err, true)
-		return emptyResponse, createerror.InternalException(err)
-	}
 
 	existingUserDAO, errObj, err := dynamodbhelper.GetUserById(
 		dependencies.DynamoDBClient, command.RequesterUserId,
@@ -100,10 +99,25 @@ func CommandV1Handler(
 		return emptyResponse, errObj
 	}
 
+	hashedPassword := existingUserDAO.HashedPassword
+	if command.Password != "" {
+		hashedPassword, err = password.Hash(command.Password)
+		if err != nil {
+			err = fmt.Errorf("error hashing password: %v", err)
+			dependencies.Logger.EnqueueErrorLog(err, true)
+			return emptyResponse, createerror.InternalException(err)
+		}
+	}
+
+	standardizedWhatsAppNumber := ""
+	if command.WhatsAppNumber != "" && command.WhatsAppNumber != "+62" {
+		standardizedWhatsAppNumber = phoneutil.StandardizePhoneNumberPrefix(command.WhatsAppNumber)
+	}
 	newUser := user.StlUserDetailDAOV1{
 		HubUserId:      existingUserDAO.HubUserId,
 		Email:          existingUserDAO.Email, //email is NOT editable for security and profit concern
 		HashedPassword: hashedPassword,
+		WhatsAppNumber: standardizedWhatsAppNumber,
 	}
 
 	/* Persisting Data

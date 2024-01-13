@@ -13,7 +13,8 @@ const PathV1 = "/v1/user.edit"
 // Keep in mind that there are other mechanism for incoming data transfer (the most common one is JWT claim).
 type RequestDTOV1 struct {
 	// Email    string //email is NOT editable for security and profit concern
-	Password string
+	Password       string
+	WhatsAppNumber string
 }
 
 // ResponseDTO is for data going from the server to clients.

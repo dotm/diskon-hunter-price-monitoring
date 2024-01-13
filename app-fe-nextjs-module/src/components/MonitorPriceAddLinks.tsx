@@ -76,7 +76,6 @@ export default function MonitorPriceAddLinks({
       }
       //do something with monitoredLinkAddRespJson.data
       resetRequestDTO()
-      console.log("kodok res", monitoredLinkAddRespJson)
       alert(`Berhasil memonitor link`)
       router.replace('/')
     } catch (error) {

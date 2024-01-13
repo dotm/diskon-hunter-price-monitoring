@@ -36,6 +36,7 @@ type StlUserDetailDAOV1 struct {
 	HubUserId      string
 	Email          string
 	HashedPassword string
+	WhatsAppNumber string
 }
 
 type StlUserEmailAuthenticationDAOV1 struct {

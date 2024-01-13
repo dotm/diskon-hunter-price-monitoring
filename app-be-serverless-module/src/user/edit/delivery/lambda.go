@@ -40,6 +40,7 @@ func LambdaHandlerV1(ctx context.Context, req events.APIGatewayProxyRequest) (ev
 			"1",                       //Version
 			jwttoken.GetUserId(token), //RequesterUserId
 			reqBody.Password,          //Password
+			reqBody.WhatsAppNumber,    //WhatsAppNumber
 		)
 
 		res, errObj = userEdit.CommandV1Handler(

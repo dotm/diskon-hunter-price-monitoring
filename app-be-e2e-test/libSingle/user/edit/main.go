@@ -13,11 +13,13 @@ import (
 type RequestDTOV1 = dto.RequestDTOV1
 
 var DefaultRequestObject = GenerateRequestObject(GenerateRequestObjectArgs{
-	Password: "Test1234!",
+	Password:       "Test1234!",
+	WhatsAppNumber: "",
 })
 
 type GenerateRequestObjectArgs struct {
-	Password string
+	Password       string
+	WhatsAppNumber string
 }
 
 // GenerateRequestObject allow only a few parameter to be customized
@@ -25,7 +27,8 @@ type GenerateRequestObjectArgs struct {
 // dto.RequestDTOV1 with all the fields.
 func GenerateRequestObject(args GenerateRequestObjectArgs) dto.RequestDTOV1 {
 	dto := dto.RequestDTOV1{
-		Password: args.Password,
+		Password:       args.Password,
+		WhatsAppNumber: args.WhatsAppNumber,
 	}
 	return dto
 }

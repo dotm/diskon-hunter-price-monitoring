@@ -31,7 +31,6 @@ export default function MonitorPriceList() {
       if(!monitoredLinkListRespJson.ok || !monitoredLinkListRespJson.data){
         throw new Error(monitoredLinkListRespJson.err?.code ?? "error monitoredLinkListRespJson")
       }
-      console.log("kodok",monitoredLinkListRespJson.data)
       setUserLinkList(monitoredLinkListRespJson.data)
     } catch (error) {
       handleErrorInFrontend(error)
@@ -144,7 +143,6 @@ export default function MonitorPriceList() {
               .map(userLink => {
                 const latestPriceIsBelowAlertPrice = userLink.LatestPrice &&
                   convertCurrencyToNumber(userLink.LatestPrice) <= convertCurrencyToNumber(userLink.AlertPrice)
-                console.log("kodok 1", userLink)
                 
                 return (
                   <a key={userLink.HubMonitoredLinkUrl} href={userLink.HubMonitoredLinkUrl} target="_blank" className="block px-2 pt-2 pb-2 hover:bg-gray-700">

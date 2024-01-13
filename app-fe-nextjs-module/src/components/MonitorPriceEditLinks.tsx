@@ -57,7 +57,6 @@ export default function MonitorPriceEditLinks({
       if(!monitoredLinkListRespJson.ok || !monitoredLinkListRespJson.data){
         throw new Error(monitoredLinkListRespJson.err?.code ?? "error monitoredLinkListRespJson")
       }
-      console.log("kodok",monitoredLinkListRespJson.data)
       const initialValue: UserMonitorsLinkListEditRequestDTO = {
         MonitoredLinkList: monitoredLinkListRespJson.data.map((o: UserLinkDetail):UserMonitorsLinkDetailEditRequestDTO=>{
           return {
@@ -101,7 +100,6 @@ export default function MonitorPriceEditLinks({
       const validatedRequestDTO = {
         MonitoredLinkList: processedMonitoredLinkList
       }
-      console.log("kodok req", validatedRequestDTO)
       const monitoredLinkEditRespJson = await fetch(`${backendBaseUrl}/v1/monitoredLink.editMultiple`, {
         method: 'POST',
         headers: backendHeadersForPostRequest(loggedInUserData.jwt),
@@ -113,7 +111,6 @@ export default function MonitorPriceEditLinks({
       }
       //do something with monitoredLinkEditRespJson.data
       resetRequestDTO()
-      console.log("kodok res", monitoredLinkEditRespJson)
       alert(`Berhasil mengubah data`)
       router.replace('/')
     } catch (error) {

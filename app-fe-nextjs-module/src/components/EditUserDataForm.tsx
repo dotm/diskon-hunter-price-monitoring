@@ -9,6 +9,7 @@ export default function EditUserDataForm() {
     useLocalStorage<LoggedInUserData | undefined>(LocalStorageKey.loggedInUser, undefined)
   //value other than password should use existing value from loggedInUserData
   const [password, setPassword] = useState("")
+  const [whatsAppNumber, setWhatsAppNumber] = useState(loggedInUserData?.whatsAppNumber ?? "+62")
   const [loading, setLoading] = useState(false)
   async function interactor_userEdit(event: FormEvent<HTMLFormElement>){
     event.preventDefault()
@@ -22,13 +23,18 @@ export default function EditUserDataForm() {
         method: 'POST',
         headers: backendHeadersForPostRequest(loggedInUserData.jwt),
         body: JSON.stringify({
-          password: password
+          Password: password,
+          WhatsAppNumber: whatsAppNumber,
         }),
       })
       .then(response => response.json())
       if(!editUserRespJson.ok || editUserRespJson.data === undefined){
         throw new Error(editUserRespJson.err?.code ?? "error editUserRespJson")
       }
+      setLoggedInUserData({
+        ...loggedInUserData,
+        whatsAppNumber: editUserRespJson.data.WhatsAppNumber
+      })
       alert("Data user berhasil diubah.")
     } catch (error) {
       handleErrorInFrontend(error)
@@ -42,10 +48,9 @@ export default function EditUserDataForm() {
         <div className="bg-gray-800 p-8 shadow sm:rounded-lg">
           <form className="space-y-6" onSubmit={interactor_userEdit}>
             <p className="text-center text-white">
-              Silahkan menggunakan form ini untuk mengubah data user anda:
+              Silahkan menggunakan form ini untuk mengubah data user anda.
               <br/>
-              <br/>
-              {loggedInUserData?.email ?? "Email N/A"}
+              Isi kolom password hanya jika anda ingin mengubah password anda.
             </p>
 
             <div>
@@ -59,9 +64,25 @@ export default function EditUserDataForm() {
                   type="password"
                   autoComplete="current-password"
                   placeholder="Password"
-                  required
                   value={password}
                   onChange={event=>setPassword(event.target.value)}
+                  className="block w-full rounded-md border-0 bg-white/5 py-1.5 px-2.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
+                />
+              </div>
+            </div>
+            
+            <div>
+              <label htmlFor="signIn-whatsAppNumber" className="sr-only block text-sm font-medium leading-6 text-gray-900">
+                Nomor WhatsApp
+              </label>
+              <div className="">
+                <input
+                  id="signIn-whatsAppNumber"
+                  name="signIn-whatsAppNumber"
+                  type="text"
+                  placeholder="+6287654321xxx"
+                  value={whatsAppNumber}
+                  onChange={event=>setWhatsAppNumber(event.target.value)}
                   className="block w-full rounded-md border-0 bg-white/5 py-1.5 px-2.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
                 />
               </div>
