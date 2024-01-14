@@ -6,10 +6,10 @@ response Headers:
 {"Apigw-Requestid":["PWW4dhLnyQ0EPzA="],"Content-Length":["104"],"Content-Type":["application/json"],"Date":["Sun, 03 Dec 2023 04:33:08 GMT"]}
 
 response Body:
-{"ok":true,"data":{"Id":"f1ffd659-bcb7-4bac-add2-1a1ab6d62727","Email":"diskon.hunter.e2e@yopmail.com"}}
+{"ok":true,"data":{"Id":"f1ffd659-bcb7-4bac-add2-1a1ab6d62727","Email":"diskon.hunter.e2e.bot@yopmail.com"}}
 
 result:
-{ResponseOk:true ResponseErrorCode: ResponseErrorMessage: ResponseData:{Id:f1ffd659-bcb7-4bac-add2-1a1ab6d62727 Email:diskon.hunter.e2e@yopmail.com}}   
+{ResponseOk:true ResponseErrorCode: ResponseErrorMessage: ResponseData:{Id:f1ffd659-bcb7-4bac-add2-1a1ab6d62727 Email:diskon.hunter.e2e.bot@yopmail.com}}   
 
 error:
 <nil>

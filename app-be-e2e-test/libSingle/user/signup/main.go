@@ -13,7 +13,7 @@ import (
 type RequestDTOV1 = dto.RequestDTOV1
 
 var DefaultRequestObject = GenerateRequestObject(GenerateRequestObjectArgs{
-	Email:    "diskon.hunter.e2e@yopmail.com",
+	Email:    "diskon.hunter.e2e.bot@yopmail.com",
 	Password: "Test123!",
 })
 

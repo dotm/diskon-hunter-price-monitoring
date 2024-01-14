@@ -28,10 +28,10 @@ export default function MonitorPriceList() {
         body: JSON.stringify({}),
       })
       .then(response => response.json())
-      if(!monitoredLinkListRespJson.ok || !monitoredLinkListRespJson.data){
+      if(!monitoredLinkListRespJson.ok){
         throw new Error(monitoredLinkListRespJson.err?.code ?? "error monitoredLinkListRespJson")
       }
-      setUserLinkList(monitoredLinkListRespJson.data)
+      setUserLinkList(monitoredLinkListRespJson.data ?? [])
     } catch (error) {
       handleErrorInFrontend(error)
     } finally {

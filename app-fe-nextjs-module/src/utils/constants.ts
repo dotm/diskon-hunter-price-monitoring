@@ -21,4 +21,6 @@ export const LocalStorageKey = {
   loggedInUser: "dhpm-loggedInUser",
   UserMonitorsLinkListAddRequestDTO: "dhpm-UserMonitorsLinkListAddRequestDTO",
   UserMonitorsLinkListEditRequestDTO: "dhpm-UserMonitorsLinkListEditRequestDTO",
+  UserSearchesItemListAddRequestDTO: "dhpm-UserSearchesItemListAddRequestDTO",
+  UserSearchesItemListEditRequestDTO: "dhpm-UserSearchesItemListEditRequestDTO",
 }

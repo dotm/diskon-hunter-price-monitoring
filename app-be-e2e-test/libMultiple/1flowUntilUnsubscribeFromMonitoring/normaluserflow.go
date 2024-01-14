@@ -25,7 +25,7 @@ func KeepInImportStatement() {
 func CheckDatabaseForNormalUserFlow() {
 	continueTesting := false
 
-	userEmail := "diskon.hunter.e2e@yopmail.com"
+	userEmail := "diskon.hunter.e2e.bot@yopmail.com"
 	firstPassword := "Test123!"
 	secondPassword := "Test12!"
 	password := "Test123!"

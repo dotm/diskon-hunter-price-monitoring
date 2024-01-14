@@ -22,6 +22,11 @@ func GetStlUserMonitorsLinkDetailList(
 	errObj *serverresponse.ErrorObj,
 	err error,
 ) {
+	if len(cleanedMonitoredLinkUrlList) == 0 {
+		return userMonitorsLinkDetailList, nil, nil
+	}
+	cleanedMonitoredLinkUrlList = sliceutil.RemoveDuplicateElements(cleanedMonitoredLinkUrlList)
+
 	batchGetItemKeys := []map[string]*dynamodb.AttributeValue{}
 	for i := 0; i < len(cleanedMonitoredLinkUrlList); i++ {
 		batchGetItemKeys = append(batchGetItemKeys, map[string]*dynamodb.AttributeValue{

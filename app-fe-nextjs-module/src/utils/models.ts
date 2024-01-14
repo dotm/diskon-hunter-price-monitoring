@@ -70,3 +70,39 @@ export interface UserLinkDetail {
   LatestPrice: Currency | null,
   TimeLatestScrapped: Date | null,
 }
+
+export function emptyUserSearchesItemListAddRequestDTO(): UserSearchesItemListAddRequestDTO{
+  return {SearchedItemList: []}
+}
+export interface UserSearchesItemListAddRequestDTO {
+  SearchedItemList: UserSearchesItemDetailAddRequestDTO[],
+}
+export interface UserSearchesItemDetailAddRequestDTO {
+  FrontendID: string, //used for key in add form. edit form should use HubSearchedItemId
+  Name: string,
+  Description: string,
+  AlertPrice: Currency,
+  AlertPriceString: string, //should be processed into AlertPrice Currency before sending request
+}
+export function emptyUserSearchesItemListEditRequestDTO(): UserSearchesItemListEditRequestDTO{
+  return {SearchedItemList: []}
+}
+export interface UserSearchesItemListEditRequestDTO {
+  SearchedItemList: UserSearchesItemDetailEditRequestDTO[],
+}
+export interface UserSearchesItemDetailEditRequestDTO {
+  HubSearchedItemId: string,
+  Name: string,
+  Description: string,
+  AlertPrice: Currency,
+  AlertPriceString: string, //should be processed into AlertPrice Currency before sending request
+}
+export interface SearchedItemDetail {
+  HubUserId: string,
+  HubSearchedItemId: string,
+  Name: string,
+  Description: string,
+  AlertPrice: Currency,
+  Status: string,
+  TimeExpired: Date,
+}

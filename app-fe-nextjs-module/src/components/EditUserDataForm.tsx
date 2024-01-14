@@ -9,7 +9,7 @@ export default function EditUserDataForm() {
     useLocalStorage<LoggedInUserData | undefined>(LocalStorageKey.loggedInUser, undefined)
   //value other than password should use existing value from loggedInUserData
   const [password, setPassword] = useState("")
-  const [whatsAppNumber, setWhatsAppNumber] = useState(loggedInUserData?.whatsAppNumber ?? "+62")
+  const [whatsAppNumber, setWhatsAppNumber] = useState(loggedInUserData?.whatsAppNumber || "+62")
   const [loading, setLoading] = useState(false)
   async function interactor_userEdit(event: FormEvent<HTMLFormElement>){
     event.preventDefault()

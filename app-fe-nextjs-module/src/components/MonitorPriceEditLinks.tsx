@@ -2,6 +2,7 @@ import { refreshIfNewAppVersionAvailable } from "@/utils/appversionutil";
 import { LocalStorageKey, backendBaseUrl, backendHeadersForPostRequest } from "@/utils/constants";
 import { convertCurrencyToNumber, convertCurrencyToNumberString, convertNumberStringToCurrency, displayCurrencyInUI } from "@/utils/currencyutil";
 import { handleErrorInFrontend } from "@/utils/error";
+import { disableChangingNumberValueOnScroll } from "@/utils/eventhandler";
 import { AvailableAlertMethodList, LoggedInUserData, UserLinkDetail, UserMonitorsLinkDetailEditRequestDTO, UserMonitorsLinkListEditRequestDTO, emptyUserMonitorsLinkListEditRequestDTO } from "@/utils/models";
 import Link from "next/link";
 import { useRouter } from 'next/router';
@@ -131,6 +132,22 @@ export default function MonitorPriceEditLinks({
           </p>
         </Link>
         :
+        <></>
+      }
+      {
+        loading
+        ?
+        <div className="bg-gray-800 text-white block w-[100%] pb-3 pt-2 mx-auto">
+          <p className="text-center">
+            Mohon tunggu. Aplikasi sedang mengambil data...
+          </p>
+        </div>
+        :
+        <></>
+      }
+      {
+        !loading
+        ?
         <>
           <div className="divide-y divide-gray-400 bg-gray-800 text-white block w-[100%] px-3 pb-3 rounded-xl mx-auto">
             <h2 className="text-center font-bold p-2">Daftar Link yang Anda Monitor</h2>
@@ -187,6 +204,7 @@ export default function MonitorPriceEditLinks({
                             type="number"
                             placeholder="Masukkan harga (angka tanpa titik atau koma)"
                             value={linkDetail.AlertPriceString}
+                            onWheel={disableChangingNumberValueOnScroll}
                             onKeyDown={event=>{
                               if(["e",".",",","-"].includes(event.key)){ //disable keys
                                 event.preventDefault()
@@ -233,6 +251,8 @@ export default function MonitorPriceEditLinks({
             </div>
           </div>
         </>
+        :
+        <></>
       }
     </div>
   )

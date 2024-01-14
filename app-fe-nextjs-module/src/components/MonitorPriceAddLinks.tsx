@@ -2,6 +2,7 @@ import { refreshIfNewAppVersionAvailable } from "@/utils/appversionutil";
 import { LocalStorageKey, backendBaseUrl, backendHeadersForPostRequest } from "@/utils/constants";
 import { convertCurrencyToNumber, convertNumberStringToCurrency, createZeroCurrency, displayCurrencyInUI } from "@/utils/currencyutil";
 import { handleErrorInFrontend } from "@/utils/error";
+import { disableChangingNumberValueOnScroll } from "@/utils/eventhandler";
 import { AlertMethod, AvailableAlertMethodList, LoggedInUserData, UserMonitorsLinkDetailAddRequestDTO, UserMonitorsLinkListAddRequestDTO, emptyUserMonitorsLinkListAddRequestDTO } from "@/utils/models";
 import Link from "next/link";
 import { useRouter } from 'next/router';
@@ -158,7 +159,7 @@ export default function MonitorPriceAddLinks({
                       </div>
                       <div>
                         <label
-                          htmlFor={`monitoredLinkAdd-url-${linkDetail.FrontendID}`}
+                          htmlFor={`monitoredLinkAdd-alertPriceString-${linkDetail.FrontendID}`}
                           className="block text-sm font-medium leading-6 text-gray-100"
                         >
                           Ingatkan saya pada harga: {displayCurrencyInUI(
@@ -167,11 +168,12 @@ export default function MonitorPriceAddLinks({
                         </label>
                         <div>
                           <input
-                            id={`monitoredLinkAdd-url-${linkDetail.FrontendID}`}
-                            name={`monitoredLinkAdd-url-${linkDetail.FrontendID}`}
+                            id={`monitoredLinkAdd-alertPriceString-${linkDetail.FrontendID}`}
+                            name={`monitoredLinkAdd-alertPriceString-${linkDetail.FrontendID}`}
                             type="number"
                             placeholder="Masukkan harga (angka tanpa titik atau koma)"
                             value={linkDetail.AlertPriceString}
+                            onWheel={disableChangingNumberValueOnScroll}
                             onKeyDown={event=>{
                               if(["e",".",",","-"].includes(event.key)){ //disable keys
                                 event.preventDefault()

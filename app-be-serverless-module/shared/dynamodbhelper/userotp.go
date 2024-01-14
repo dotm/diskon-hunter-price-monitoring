@@ -4,6 +4,7 @@ import (
 	"diskon-hunter/price-monitoring/shared/createerror"
 	"diskon-hunter/price-monitoring/shared/emailutil"
 	"diskon-hunter/price-monitoring/shared/serverresponse"
+	"diskon-hunter/price-monitoring/shared/sliceutil"
 	"diskon-hunter/price-monitoring/src/user"
 	"fmt"
 	"time"
@@ -40,6 +41,7 @@ func GetUserEmailHasOtpDetailListByEmailList(
 	if len(emailList) == 0 {
 		return userEmailHasOtpDetailList, nil, nil
 	}
+	emailList = sliceutil.RemoveDuplicateElements(emailList)
 
 	batchGetItemKeys := []map[string]*dynamodb.AttributeValue{}
 	for i := 0; i < len(emailList); i++ {

@@ -95,7 +95,6 @@ func Execute(body dto.RequestDTOV1, jwtToken string) (result ExecuteResult, err 
 func CheckResultIsCorrect(request dto.RequestDTOV1, result ExecuteResult, requesterUserId string) (err error) {
 	//Should directly get data from database (or other data stores)
 	// and check the correctness of the data in that database (or other data stores).
-	email := result.ResponseData.Email
 	userList, errObj, err := dynamodbhelper.GetUserListByFilter(
 		dynamodbhelper.CreateClientFromSession(), []string{requesterUserId})
 	if errObj != nil || err != nil {
@@ -108,20 +107,6 @@ func CheckResultIsCorrect(request dto.RequestDTOV1, result ExecuteResult, reques
 		return
 	}
 	fmt.Printf("__success__ adding to user table:\n%+v\n\n", userList[0])
-
-	userEmailAuthenticationList, errObj, err := dynamodbhelper.GetUserEmailAuthenticationListByEmailList(
-		dynamodbhelper.CreateClientFromSession(), []string{email})
-	if errObj != nil || err != nil {
-		fmt.Printf("__exception__ errObj: %+v\n", errObj)
-		fmt.Printf("__exception__ err: %v\n", err)
-		return
-	}
-	if len(userEmailAuthenticationList) < 1 {
-		fmt.Printf("__exception__ email %s not added to database", email)
-		return
-	}
-
-	fmt.Printf("__success__ adding to user email authentication table:\n%+v\n\n", userEmailAuthenticationList[0])
 
 	return nil
 }

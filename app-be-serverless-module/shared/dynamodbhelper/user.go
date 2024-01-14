@@ -3,6 +3,7 @@ package dynamodbhelper
 import (
 	"diskon-hunter/price-monitoring/shared/createerror"
 	"diskon-hunter/price-monitoring/shared/serverresponse"
+	"diskon-hunter/price-monitoring/shared/sliceutil"
 	"diskon-hunter/price-monitoring/src/user"
 	"fmt"
 	"strings"
@@ -40,6 +41,7 @@ func GetUserListByFilter(
 	if len(userIdList) == 0 {
 		return userList, nil, nil
 	}
+	userIdList = sliceutil.RemoveDuplicateElements(userIdList)
 
 	batchGetItemKeys := []map[string]*dynamodb.AttributeValue{}
 	for i := 0; i < len(userIdList); i++ {

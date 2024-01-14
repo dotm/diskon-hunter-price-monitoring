@@ -1,4 +1,4 @@
-import SearchItem from '@/components/SearchItem'
+import SearchItemList from '@/components/SearchItemList'
 import Sidebar from '@/components/Sidebar'
 import { refreshIfNewAppVersionAvailable } from '@/utils/appversionutil'
 import { LocalStorageKey } from '@/utils/constants'
@@ -16,7 +16,7 @@ export default function SearchItemPage() {
 
   return (
     <Sidebar pageTitle='Cari Barang' navTitle='Cari Barang'>
-      <SearchItem />
+      <SearchItemList />
     </Sidebar>
   )
 }
