@@ -185,3 +185,63 @@ func GetMonitoredLinkListOfUrl(
 
 	return stlMonitoredLinkDetailList, nil, nil
 }
+
+func GetCombinedUserMonitoredLinkDataListOfUserId(
+	dynamoDBClient *dynamodb.DynamoDB,
+	userId string,
+	excludeLinksWithoutAlertMethod bool,
+) (
+	combinedUserMonitoredLinkDataList []monitoredLink.CombinedUserMonitoredLinkDataV1,
+	errObj *serverresponse.ErrorObj,
+	err error,
+) {
+	unfilteredUserMonitorsLinkList, errObj, err := GetUserMonitorsLinkListOfUserId(
+		dynamoDBClient, userId,
+	)
+	if errObj != nil || err != nil {
+		return combinedUserMonitoredLinkDataList, errObj, err
+	}
+
+	userMonitorsLinkList := []monitoredLink.StlUserMonitorsLinkDetailDAOV1{}
+	if excludeLinksWithoutAlertMethod {
+		for _, userMonitorsLinkDetail := range unfilteredUserMonitorsLinkList {
+			if len(userMonitorsLinkDetail.ActiveAlertMethodList) > 0 {
+				userMonitorsLinkList = append(userMonitorsLinkList, userMonitorsLinkDetail)
+			}
+		}
+	} else {
+		userMonitorsLinkList = unfilteredUserMonitorsLinkList
+	}
+
+	urlList := []string{}
+	for _, userMonitorsLinkDetail := range userMonitorsLinkList {
+		urlList = append(urlList, userMonitorsLinkDetail.HubMonitoredLinkUrl)
+	}
+	monitoredLinkList, errObj, err := GetMonitoredLinkListOfUrl(
+		dynamoDBClient, urlList,
+	)
+	if errObj != nil || err != nil {
+		return combinedUserMonitoredLinkDataList, errObj, err
+	}
+	urlToMonitoredLinkDetailMap := map[string]monitoredLink.StlMonitoredLinkDetailDAOV1{}
+	for _, monitoredLinkDetail := range monitoredLinkList {
+		urlToMonitoredLinkDetailMap[monitoredLinkDetail.HubMonitoredLinkUrl] = monitoredLinkDetail
+	}
+	for _, userMonitorsLinkDetail := range userMonitorsLinkList {
+		monitoredLinkDetail, ok := urlToMonitoredLinkDetailMap[userMonitorsLinkDetail.HubMonitoredLinkUrl]
+		if !ok {
+			err = fmt.Errorf("url not found in urlToMonitoredLinkDetailMap: %v", userMonitorsLinkDetail.HubMonitoredLinkUrl)
+			return combinedUserMonitoredLinkDataList, createerror.InternalException(err), err
+		}
+		combinedUserMonitoredLinkDataList = append(
+			combinedUserMonitoredLinkDataList,
+			monitoredLink.CombinedUserMonitoredLinkDataV1{
+				StlUserMonitorsLinkDetailDAOV1: userMonitorsLinkDetail,
+				LatestPrice:                    monitoredLinkDetail.LatestPrice,
+				TimeLatestScrapped:             monitoredLinkDetail.TimeLatestScrapped,
+			},
+		)
+	}
+
+	return combinedUserMonitoredLinkDataList, nil, nil
+}

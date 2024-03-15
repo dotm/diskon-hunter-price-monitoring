@@ -118,6 +118,10 @@ func NewFromNumberString(value, currencyUnit string) Currency {
 	}
 }
 
+func (x Currency) ToDisplayString() string {
+	return fmt.Sprintf("%v %v", x.CurrencyUnit, x.ToDouble())
+}
+
 func (x Currency) ToDouble() float64 {
 	s, _ := strconv.ParseFloat(x.Significand, 64)
 	e, _ := strconv.ParseFloat(x.Exponent, 64)
@@ -163,7 +167,19 @@ func (x Currency) IsLessThan(b Currency) bool {
 	return x.Substract(b).IsNegative()
 }
 
+func (x Currency) IsGreaterThan(b Currency) bool {
+	//TODO: implement directly using significand and exponent
+	//and then copy to Currency ~kodok
+	return x.Substract(b).IsPositive()
+}
+
+func (x Currency) IsGreaterThanOrEqualTo(b Currency) bool {
+	return x.IsGreaterThan(b) || x.IsEqualTo(b)
+}
+
 func (x Currency) IsEqualTo(b Currency) bool {
+	//TODO: implement directly using significand and exponent
+	//and then copy to Currency ~kodok
 	return x.ToDouble() == b.ToDouble()
 
 	//the code below hasn't account for when significand is different (2.0 and 2).

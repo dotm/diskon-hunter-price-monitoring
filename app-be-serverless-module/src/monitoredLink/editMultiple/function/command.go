@@ -134,7 +134,9 @@ func CommandV1Handler(
 				}
 			}
 			if !activeAlertMethodHasBeenPaid {
-				return emptyResponse, createerror.AlertMethodHasNotBeenPaid(fmt.Errorf("%v is unpaid", activeAlertMethod))
+				err := fmt.Errorf("%v is unpaid", activeAlertMethod)
+				dependencies.Logger.EnqueueErrorLog(err, true)
+				return emptyResponse, createerror.AlertMethodHasNotBeenPaid(err)
 			}
 		}
 

@@ -3,14 +3,12 @@ package monitoredLinkList
 import (
 	"context"
 	"diskon-hunter/price-monitoring/shared/createerror"
-	"diskon-hunter/price-monitoring/shared/currencyutil"
 	"diskon-hunter/price-monitoring/shared/dynamodbhelper"
 	"diskon-hunter/price-monitoring/shared/lazylogger"
 	"diskon-hunter/price-monitoring/shared/serverresponse"
 	"diskon-hunter/price-monitoring/src/monitoredLink"
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 )
@@ -42,11 +40,7 @@ type QueryV1Dependencies struct {
 }
 
 type QueryV1DataResponse = []QueryV1UserLinkDetail
-type QueryV1UserLinkDetail struct {
-	monitoredLink.StlUserMonitorsLinkDetailDAOV1
-	LatestPrice        *currencyutil.Currency //can be nil
-	TimeLatestScrapped *time.Time
-}
+type QueryV1UserLinkDetail = monitoredLink.CombinedUserMonitoredLinkDataV1
 
 /*
 Addition, change, or removal of validation and presentation might cause version increment
@@ -77,43 +71,13 @@ func QueryV1Handler(
 	Retrieving data from a data store.
 	*/
 
-	userMonitorsLinkList, errObj, err := dynamodbhelper.GetUserMonitorsLinkListOfUserId(
-		dependencies.DynamoDBClient, query.RequesterUserId,
+	combinedUserMonitoredLinkDataList, errObj, err := dynamodbhelper.GetCombinedUserMonitoredLinkDataListOfUserId(
+		dependencies.DynamoDBClient, query.RequesterUserId, false,
 	)
 	if errObj != nil {
 		//error already well described on the calling method
 		dependencies.Logger.EnqueueErrorLog(err, true)
 		return emptyResponse, errObj
-	}
-	urlList := []string{}
-	for _, userMonitorsLinkDetail := range userMonitorsLinkList {
-		urlList = append(urlList, userMonitorsLinkDetail.HubMonitoredLinkUrl)
-	}
-	monitoredLinkList, errObj, err := dynamodbhelper.GetMonitoredLinkListOfUrl(
-		dependencies.DynamoDBClient, urlList,
-	)
-	if errObj != nil {
-		//error already well described on the calling method
-		dependencies.Logger.EnqueueErrorLog(err, true)
-		return emptyResponse, errObj
-	}
-	urlToMonitoredLinkDetailMap := map[string]monitoredLink.StlMonitoredLinkDetailDAOV1{}
-	for _, monitoredLinkDetail := range monitoredLinkList {
-		urlToMonitoredLinkDetailMap[monitoredLinkDetail.HubMonitoredLinkUrl] = monitoredLinkDetail
-	}
-	userLinkList := []QueryV1UserLinkDetail{}
-	for _, userMonitorsLinkDetail := range userMonitorsLinkList {
-		monitoredLinkDetail, ok := urlToMonitoredLinkDetailMap[userMonitorsLinkDetail.HubMonitoredLinkUrl]
-		if !ok {
-			err = fmt.Errorf("url not found in urlToMonitoredLinkDetailMap: %v", userMonitorsLinkDetail.HubMonitoredLinkUrl)
-			dependencies.Logger.EnqueueErrorLog(err, true)
-			return emptyResponse, createerror.InternalException(err)
-		}
-		userLinkList = append(userLinkList, QueryV1UserLinkDetail{
-			StlUserMonitorsLinkDetailDAOV1: userMonitorsLinkDetail,
-			LatestPrice:                    monitoredLinkDetail.LatestPrice,
-			TimeLatestScrapped:             monitoredLinkDetail.TimeLatestScrapped,
-		})
 	}
 
 	/* Presenting Data
@@ -125,5 +89,5 @@ func QueryV1Handler(
 	Unless the data is presented to the client (using return from this function),
 	you'll need to move it to the intended data store.
 	*/
-	return userLinkList, nil
+	return combinedUserMonitoredLinkDataList, nil
 }

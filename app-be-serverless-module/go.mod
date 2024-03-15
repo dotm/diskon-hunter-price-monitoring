@@ -13,6 +13,7 @@ require (
 )
 
 require (
+	github.com/aymerick/raymond v2.0.2+incompatible // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect

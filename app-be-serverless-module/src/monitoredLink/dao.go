@@ -75,3 +75,22 @@ func NewStlUserMonitorsLinkDetailDAOV1(
 		TimeExpired:           TimeExpired,
 	}
 }
+
+type CombinedUserMonitoredLinkDataV1 struct {
+	StlUserMonitorsLinkDetailDAOV1
+	//fields below is from StlMonitoredLinkDetailDAOV1
+	LatestPrice        *currencyutil.Currency //can be nil
+	TimeLatestScrapped *time.Time
+}
+
+func NewCombinedUserMonitoredLinkDataV1(
+	StlUserMonitorsLinkDetailDAOV1 StlUserMonitorsLinkDetailDAOV1,
+	LatestPrice *currencyutil.Currency,
+	TimeLatestScrapped *time.Time,
+) CombinedUserMonitoredLinkDataV1 {
+	return CombinedUserMonitoredLinkDataV1{
+		StlUserMonitorsLinkDetailDAOV1: StlUserMonitorsLinkDetailDAOV1,
+		LatestPrice:                    LatestPrice,
+		TimeLatestScrapped:             TimeLatestScrapped,
+	}
+}

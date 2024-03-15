@@ -107,6 +107,7 @@ func CommandV1Handler(
 	for i := 0; i < len(command.SearchedItemList); i++ {
 		if len(command.SearchedItemList[i].Description) > constenum.MaxCharForSearchedItemDescription {
 			err = fmt.Errorf("error description length of %v exceed max length of %v", len(command.SearchedItemList[i].Description), constenum.MaxCharForSearchedItemDescription)
+			dependencies.Logger.EnqueueErrorLog(err, true)
 			return emptyResponse, createerror.ClientBadRequest(err)
 		}
 	}
